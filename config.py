@@ -19,13 +19,13 @@ MIN_ORDER_CNY = int(os.getenv("MIN_ORDER_CNY", "5000"))
 # Discount thresholds (USD equivalent)
 DISCOUNT_THRESHOLD_USD = int(os.getenv("DISCOUNT_THRESHOLD_USD", "4000"))
 
-# Discounts for FIAT payments (AMD/USD/RUB)
-DISCOUNT_FIAT_HIGH = Decimal(os.getenv("DISCOUNT_FIAT_HIGH", "-0.010"))  # -1.0% for >= 4000 USD
-DISCOUNT_FIAT_LOW = Decimal(os.getenv("DISCOUNT_FIAT_LOW", "-0.015"))   # -1.5% for < 4000 USD
+# Discounts for FIAT payments (AMD/USD/RUB) - reduces rate
+DISCOUNT_FIAT_HIGH = Decimal(os.getenv("DISCOUNT_FIAT_HIGH", "-0.009"))  # -0.9% for >= 4000 USD
+DISCOUNT_FIAT_LOW = Decimal(os.getenv("DISCOUNT_FIAT_LOW", "-0.013"))    # -1.3% for < 4000 USD
 
-# Discounts for USDT payments
-DISCOUNT_USDT_HIGH = Decimal(os.getenv("DISCOUNT_USDT_HIGH", "-0.005"))  # -0.5% for >= 4000 USD
-DISCOUNT_USDT_LOW = Decimal(os.getenv("DISCOUNT_USDT_LOW", "-0.010"))    # -1.0% for < 4000 USD
+# Discounts for USDT payments - reduces rate
+DISCOUNT_USDT_HIGH = Decimal(os.getenv("DISCOUNT_USDT_HIGH", "-0.009"))  # -0.9% for >= 4000 USD
+DISCOUNT_USDT_LOW = Decimal(os.getenv("DISCOUNT_USDT_LOW", "-0.013"))    # -1.3% for < 4000 USD
 
 # =============================================================================
 # HTX P2P Configuration

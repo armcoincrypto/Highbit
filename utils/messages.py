@@ -57,19 +57,19 @@ def format_daily_rates_new(
         usd_cny_market = Decimal("0")
         cny_rub_market = Decimal("0")
 
-    # Apply discount to show "OUR RATE" (customer pays less = gets more CNY per unit)
-    # Discount is negative (e.g., -0.015 = -1.5%), so (1 + discount) < 1
-    # Our rate = market / (1 + discount) → higher rate for customer
-    fiat_multiplier = Decimal("1") / (Decimal("1") + DISCOUNT_FIAT_LOW)
-    usdt_multiplier = Decimal("1") / (Decimal("1") + DISCOUNT_USDT_LOW)
+    # Apply discount: rate × (1 + discount)
+    # Discount is negative (e.g., -0.013 = -1.3%), so rate decreases
+    # Example: 6.92 × (1 - 0.013) = 6.92 × 0.987 = 6.83
+    fiat_multiplier = Decimal("1") + DISCOUNT_FIAT_LOW
+    usdt_multiplier = Decimal("1") + DISCOUNT_USDT_LOW
 
-    # Our rates (what customer gets)
+    # Our rates (after discount applied)
+    our_usdt_cny = (usdt_cny * usdt_multiplier).quantize(Decimal("0.0001"), ROUND_HALF_UP)
     our_usd_cny = (usd_cny_market * fiat_multiplier).quantize(Decimal("0.0001"), ROUND_HALF_UP)
     our_cny_rub = (cny_rub_market * fiat_multiplier).quantize(Decimal("0.0001"), ROUND_HALF_UP)
-    our_usdt_cny = (usdt_cny * usdt_multiplier).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
-    # CNY/AMD (how much AMD per 1 CNY - apply inverse)
-    our_cny_amd = (cny_amd / fiat_multiplier).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    # CNY/AMD (apply same multiplier)
+    our_cny_amd = (cny_amd * fiat_multiplier).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     # Source indicator
     source = ""
