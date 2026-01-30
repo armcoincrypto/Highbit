@@ -244,20 +244,21 @@ async def main():
     # Startup tasks
     await on_startup(bot)
 
-    # Schedule daily post at 11:00 local time
+    # Scheduler for daily posts (DISABLED - enable when needed)
     sched = AsyncIOScheduler(timezone=timezone(TIMEZONE))
-    sched.add_job(
-        scheduler_task,
-        "cron",
-        hour=11,
-        minute=0,
-        args=(bot,),
-        id="daily_rates_post",
-        replace_existing=True,
-        misfire_grace_time=3600,
-    )
+    # Uncomment to enable daily channel posting:
+    # sched.add_job(
+    #     scheduler_task,
+    #     "cron",
+    #     hour=11,
+    #     minute=0,
+    #     args=(bot,),
+    #     id="daily_rates_post",
+    #     replace_existing=True,
+    #     misfire_grace_time=3600,
+    # )
     sched.start()
-    log.info("Scheduler started: daily post at 11:00 %s", TIMEZONE)
+    log.info("Scheduler initialized (daily posts DISABLED)")
 
     # Handle graceful shutdown
     loop = asyncio.get_event_loop()

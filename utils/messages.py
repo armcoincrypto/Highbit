@@ -87,10 +87,8 @@ def format_daily_rates_new(
         f"🔹 1 CNY = <b>{our_cny_amd}</b> AMD\n"
         f"🔹 1 CNY = <b>{our_cny_rub}</b> RUB\n"
         f"🔹 1 USDT = <b>{our_usdt_cny}</b> CNY{source}\n\n"
-        f"💰 <i>Discounts: FIAT -{fiat_discount_pct:.1f}%, USDT -{usdt_discount_pct:.1f}%</i>\n"
-        f"📋 Min order: 5000 CNY\n\n"
         "📢 @Highbitchannel\n"
-        "🤖 @HighbitChinabot"
+        "🤖 @Highbitagent"
     )
 
 
