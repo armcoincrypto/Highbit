@@ -292,9 +292,13 @@ class HTXP2PClient:
                             continue
 
                     if prices:
-                        highest = max(prices)
-                        log.info("Binance fallback price: %.2f CNY/USDT", highest)
-                        return highest, "binance_fallback"
+                        # Sort descending and use 3rd position
+                        prices.sort(reverse=True)
+                        position = min(2, len(prices) - 1)
+                        selected = prices[position]
+                        log.info("Binance fallback price: %.2f CNY/USDT (position %d)",
+                                 selected, position + 1)
+                        return selected, "binance_fallback"
 
                     return None, ""
 
