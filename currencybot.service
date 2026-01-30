@@ -1,0 +1,20 @@
+[Unit]
+Description=Highbit Exchange Rates Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/highbitbot
+EnvironmentFile=/opt/highbitbot/.env
+ExecStart=/opt/highbitbot/.venv/bin/python /opt/highbitbot/main.py
+Restart=always
+RestartSec=5
+User=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
