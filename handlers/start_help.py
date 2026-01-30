@@ -1,8 +1,9 @@
-from logging import getLogger
+import logging
+
 from aiogram import Router, types
 from aiogram.filters import CommandStart, Command
 
-log = getLogger("h.start")
+log = logging.getLogger(__name__)
 router = Router()
 
 HELLO = (
@@ -23,10 +24,12 @@ HELP = (
 "Օպերատոր՝ @Highbitagent"
 )
 
+
 @router.message(CommandStart())
 async def start(m: types.Message):
     log.info("/start by %s", m.from_user.id if m.from_user else "?")
     await m.answer(HELLO)
+
 
 @router.message(Command("help"))
 async def help_(m: types.Message):

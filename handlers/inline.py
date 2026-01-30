@@ -1,12 +1,14 @@
-from logging import getLogger
+import logging
+
 from aiogram import Router, types
+
 from utils.parse import parse_amount
-from services.rates import RateClient
+from services.rates import get_rate_client
 from services.convert import convert_from_cny, convert_usd_to_cny
 
-log = getLogger("h.inline")
+log = logging.getLogger(__name__)
 router = Router()
-rate_client = RateClient()
+
 
 @router.inline_query()
 async def inline_handler(iq: types.InlineQuery):
@@ -28,12 +30,14 @@ async def inline_handler(iq: types.InlineQuery):
         return await iq.answer(results=results, cache_time=5, is_personal=True)
 
     try:
-        fiat = await rate_client.get_fiat()
-        usdt_cny = await rate_client.get_usdt_cny()
+        rc = await get_rate_client()
+        fiat = await rc.get_fiat()
+        usdt_cny = await rc.get_usdt_cny()
+
         if kind == "CNY":
             out = convert_from_cny(amt, fiat, usdt_cny)
             title = f"{amt} CNY → USD/AMD/RUB/USDT"
-            desc  = f"USD {out['USD']} · AMD {out['AMD']} · RUB {out['RUB']} · USDT {out['USDT']}"
+            desc = f"USD {out['USD']} · AMD {out['AMD']} · RUB {out['RUB']} · USDT {out['USDT']}"
             results.append(types.InlineQueryResultArticle(
                 id="cny",
                 title=title,
@@ -45,7 +49,7 @@ async def inline_handler(iq: types.InlineQuery):
         elif kind == "USD":
             cny = convert_usd_to_cny(amt, fiat)
             title = f"${amt} USD → CNY"
-            desc  = f"CNY {cny}"
+            desc = f"CNY {cny}"
             results.append(types.InlineQueryResultArticle(
                 id="usd",
                 title=title,
