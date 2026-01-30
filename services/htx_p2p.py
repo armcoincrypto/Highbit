@@ -163,14 +163,18 @@ class HTXP2PClient:
                     if not prices:
                         return None, [], ""
 
-                    # Sort: preferred first, then highest price
-                    prices.sort(key=lambda x: (x["preferred"], x["price"]), reverse=True)
-                    highest = prices[0]
+                    # Sort by price descending (highest first)
+                    prices.sort(key=lambda x: x["price"], reverse=True)
 
-                    log.info("P2P.Army HTX price: %.2f CNY/USDT (merchant: %s)",
-                             highest["price"], highest["merchant"])
+                    # Use 3rd position (index 2) for competitive rate
+                    # Fall back to last available if fewer than 3 ads
+                    position = min(2, len(prices) - 1)
+                    selected = prices[position]
 
-                    return highest["price"], prices[:5], "p2p_army_htx"
+                    log.info("P2P.Army HTX price: %.2f CNY/USDT (position %d, merchant: %s)",
+                             selected["price"], position + 1, selected["merchant"])
+
+                    return selected["price"], prices[:5], "p2p_army_htx"
 
             return await self._fetch_with_retry(fetch, "P2P.Army")
 
@@ -234,11 +238,16 @@ class HTXP2PClient:
                     if not prices:
                         return None, [], ""
 
-                    prices.sort(key=lambda x: (x["preferred"], x["price"]), reverse=True)
-                    highest = prices[0]
+                    # Sort by price descending
+                    prices.sort(key=lambda x: x["price"], reverse=True)
 
-                    log.info("HTX Direct price: %.2f CNY/USDT", highest["price"])
-                    return highest["price"], prices[:5], "htx_direct"
+                    # Use 3rd position for competitive rate
+                    position = min(2, len(prices) - 1)
+                    selected = prices[position]
+
+                    log.info("HTX Direct price: %.2f CNY/USDT (position %d)",
+                             selected["price"], position + 1)
+                    return selected["price"], prices[:5], "htx_direct"
 
             return await self._fetch_with_retry(fetch, "HTX Direct")
 
