@@ -17,6 +17,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 
+from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
+
 from config import BOT_TOKEN, CHANNEL_ID, TIMEZONE
 from handlers import (
     rates as h_rates,
@@ -33,8 +35,17 @@ from middlewares.antiflood import AntiFloodMiddleware
 from services.rates import get_rate_client
 from services.htx_p2p import get_htx_p2p_client
 from services.cba_rates import get_cba_client
-from utils.messages import format_daily_rates
+from utils.messages import format_daily_rates_new
 from models.database import get_database
+
+# Flag to track if channel posting is available
+_channel_post_enabled = True
+_channel_post_error = ""
+
+
+def get_channel_status() -> tuple[bool, str]:
+    """Get current channel posting status. Used by admin commands."""
+    return _channel_post_enabled, _channel_post_error
 
 # Structured logging
 logging.basicConfig(
@@ -42,6 +53,71 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s"
 )
 log = logging.getLogger("highbitbot")
+
+
+async def validate_channel_posting(bot: Bot) -> tuple[bool, str]:
+    """
+    Validate that the bot can post to the configured channel.
+    Returns (success, error_message).
+    """
+    global _channel_post_enabled, _channel_post_error
+
+    if not CHANNEL_ID:
+        msg = "CHANNEL_ID not configured - daily posts disabled"
+        log.warning(msg)
+        _channel_post_enabled = False
+        _channel_post_error = msg
+        return False, msg
+
+    try:
+        # Try to get chat info to verify bot has access
+        chat = await bot.get_chat(CHANNEL_ID)
+        log.info("Channel validated: %s (ID: %s)", chat.title or chat.username, chat.id)
+
+        # For channels, bot must be admin to post
+        if chat.type == "channel":
+            try:
+                member = await bot.get_chat_member(chat.id, bot.id)
+                if member.status not in ("administrator", "creator"):
+                    msg = (
+                        f"Bot is not admin in channel {chat.title or CHANNEL_ID}. "
+                        "Add bot as admin with 'Post Messages' permission."
+                    )
+                    log.error(msg)
+                    _channel_post_enabled = False
+                    _channel_post_error = msg
+                    return False, msg
+            except Exception as e:
+                log.warning("Could not verify admin status: %s (posting may still work)", e)
+
+        _channel_post_enabled = True
+        _channel_post_error = ""
+        return True, ""
+
+    except TelegramForbiddenError:
+        msg = (
+            f"Bot cannot access channel {CHANNEL_ID}. "
+            "Either: 1) Bot is not a member, 2) Channel ID is wrong, or 3) Bot was kicked. "
+            "Add bot to channel as admin with 'Post Messages' permission."
+        )
+        log.error(msg)
+        _channel_post_enabled = False
+        _channel_post_error = msg
+        return False, msg
+
+    except TelegramBadRequest as e:
+        msg = f"Invalid CHANNEL_ID '{CHANNEL_ID}': {e}. Use format -100... for channels."
+        log.error(msg)
+        _channel_post_enabled = False
+        _channel_post_error = msg
+        return False, msg
+
+    except Exception as e:
+        msg = f"Channel validation error: {e}"
+        log.error(msg)
+        _channel_post_enabled = False
+        _channel_post_error = msg
+        return False, msg
 
 
 async def on_startup(bot: Bot):
@@ -63,6 +139,9 @@ async def on_startup(bot: Bot):
         BotCommand(command="my_requests", description="My transfer requests"),
     ])
     log.info("Bot commands set")
+
+    # Validate channel posting (non-blocking - bot continues even if invalid)
+    await validate_channel_posting(bot)
 
 
 async def on_shutdown():
@@ -91,18 +170,37 @@ async def on_shutdown():
 
 async def scheduler_task(bot: Bot):
     """Daily scheduled task to post rates to channel."""
+    global _channel_post_enabled, _channel_post_error
+
+    # Skip if channel posting is disabled
+    if not _channel_post_enabled:
+        log.warning("scheduler: channel posting disabled (%s), skipping", _channel_post_error)
+        return
+
+    if not CHANNEL_ID:
+        log.warning("scheduler: CHANNEL_ID not configured, skipping post")
+        return
+
     try:
         log.info("scheduler: fetching rates & posting to channel")
-        rc = await get_rate_client()
-        fiat = await rc.get_fiat()
-        usdt_cny = await rc.get_usdt_cny()
-        text = format_daily_rates(fiat, usdt_cny)
 
-        if CHANNEL_ID:
-            await bot.send_message(chat_id=CHANNEL_ID, text=text)
-            log.info("scheduler: posted to channel %s", CHANNEL_ID)
-        else:
-            log.warning("scheduler: CHANNEL_ID not configured, skipping post")
+        # Use new services
+        htx = await get_htx_p2p_client()
+        cba = await get_cba_client()
+
+        usdt_cny, htx_meta = await htx.get_usdt_cny_price()
+        cba_rates, cba_meta = await cba.get_rates()
+
+        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta)
+
+        await bot.send_message(chat_id=CHANNEL_ID, text=text)
+        log.info("scheduler: posted to channel %s", CHANNEL_ID)
+
+    except TelegramForbiddenError:
+        log.error("scheduler: bot not member of channel %s - disabling future posts", CHANNEL_ID)
+        _channel_post_enabled = False
+        _channel_post_error = "Bot was removed from channel or lacks permissions"
+
     except Exception as e:
         log.exception("scheduler failed: %s", e)
 
