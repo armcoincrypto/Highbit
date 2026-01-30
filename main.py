@@ -244,12 +244,12 @@ async def main():
     # Startup tasks
     await on_startup(bot)
 
-    # Schedule daily post at 10:00 local time
+    # Schedule daily post at 11:00 local time
     sched = AsyncIOScheduler(timezone=timezone(TIMEZONE))
     sched.add_job(
         scheduler_task,
         "cron",
-        hour=10,
+        hour=11,
         minute=0,
         args=(bot,),
         id="daily_rates_post",
@@ -257,7 +257,7 @@ async def main():
         misfire_grace_time=3600,
     )
     sched.start()
-    log.info("Scheduler started: daily post at 10:00 %s", TIMEZONE)
+    log.info("Scheduler started: daily post at 11:00 %s", TIMEZONE)
 
     # Handle graceful shutdown
     loop = asyncio.get_event_loop()
