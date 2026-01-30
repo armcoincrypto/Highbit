@@ -1,0 +1,2 @@
+# Highbit
+currencybot.service
