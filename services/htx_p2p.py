@@ -1,39 +1,49 @@
 """
 HTX (Huobi) P2P USDT/CNY rate fetcher.
-Fetches the highest price from P2P ads for USDT/CNY.
+Primary: P2P.Army API (normalized P2P data)
+Fallback: Direct HTX/Binance P2P APIs
 """
 import asyncio
 import logging
+import random
 import time
 from decimal import Decimal
 from typing import Optional, Tuple, List
 
 import aiohttp
 
-from config import HTX_P2P_TTL_SECONDS, HTX_PREFERRED_METHODS, HTTP_TIMEOUT, HTTP_RETRIES
+from config import (
+    HTX_P2P_TTL_SECONDS,
+    HTX_PREFERRED_METHODS,
+    HTTP_TIMEOUT,
+    HTTP_RETRIES,
+    P2P_ARMY_API_KEY,
+)
 
 log = logging.getLogger(__name__)
 
-# HTX P2P API endpoint
-HTX_P2P_API = "https://www.htx.com/-/x/otc/v1/data/trade-market"
+# P2P.Army API (preferred - normalized data)
+P2P_ARMY_API = "https://p2p.army/api/v1/ads"
 
-# Backup: Binance P2P (similar structure)
+# Direct P2P APIs (fallback)
+HTX_P2P_API = "https://www.htx.com/-/x/otc/v1/data/trade-market"
 BINANCE_P2P_API = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
 
 
 class HTXP2PClient:
     """
     Singleton client for HTX P2P USDT/CNY rates.
-    Fetches highest sell price (user buys USDT with CNY).
+    Fetches highest sell price (CNY per 1 USDT).
     """
     _instance: Optional["HTXP2PClient"] = None
     _lock = asyncio.Lock()
 
     def __init__(self):
-        self._cache: Optional[Tuple[float, Decimal, dict]] = None  # (timestamp, price, metadata)
+        self._cache: Optional[Tuple[float, Decimal, dict]] = None
         self._cache_lock = asyncio.Lock()
         self._session: Optional[aiohttp.ClientSession] = None
         self._last_good_price: Optional[Decimal] = None
+        self._last_good_metadata: Optional[dict] = None
 
     @classmethod
     async def get_instance(cls) -> "HTXP2PClient":
@@ -59,17 +69,125 @@ class HTXP2PClient:
         ts, _, _ = self._cache
         return (time.time() - ts) < HTX_P2P_TTL_SECONDS
 
-    async def _fetch_htx_p2p(self) -> Tuple[Optional[Decimal], List[dict]]:
-        """Fetch from HTX P2P API."""
+    async def _fetch_with_retry(self, coro_factory, description: str):
+        """Execute with retry and exponential backoff."""
+        last_exc = None
+        for attempt in range(1, HTTP_RETRIES + 1):
+            try:
+                return await coro_factory()
+            except asyncio.TimeoutError as e:
+                last_exc = e
+                log.warning("%s timeout (attempt %d/%d)", description, attempt, HTTP_RETRIES)
+            except aiohttp.ClientError as e:
+                last_exc = e
+                log.warning("%s client error (attempt %d/%d): %s", description, attempt, HTTP_RETRIES, e)
+
+            if attempt < HTTP_RETRIES:
+                wait = min(1.5 ** attempt, 4) + random.uniform(0, 0.5)
+                await asyncio.sleep(wait)
+
+        raise last_exc or RuntimeError(f"{description} failed after {HTTP_RETRIES} attempts")
+
+    async def _fetch_p2p_army(self) -> Tuple[Optional[Decimal], List[dict], str]:
+        """
+        Fetch from P2P.Army API (preferred source).
+        Returns (price, ads_list, source_name).
+        """
+        if not P2P_ARMY_API_KEY:
+            log.debug("P2P_ARMY_API_KEY not configured, skipping P2P.Army")
+            return None, [], ""
+
         session = await self._get_session()
 
-        # HTX P2P request payload
+        params = {
+            "market": "huobi",  # HTX/Huobi
+            "fiat": "CNY",
+            "crypto": "USDT",
+            "side": "sell",  # Sellers selling USDT (we buy)
+            "limit": 20,
+        }
+        headers = {
+            "Authorization": f"Bearer {P2P_ARMY_API_KEY}",
+            "Accept": "application/json",
+        }
+
+        try:
+            async def fetch():
+                async with session.get(P2P_ARMY_API, params=params, headers=headers) as r:
+                    if r.status == 401:
+                        log.error("P2P.Army API: Invalid API key")
+                        return None, [], ""
+                    if r.status == 429:
+                        log.warning("P2P.Army API: Rate limited")
+                        return None, [], ""
+                    if r.status != 200:
+                        log.warning("P2P.Army API returned %d", r.status)
+                        return None, [], ""
+
+                    data = await r.json()
+                    ads = data.get("data", data.get("ads", []))
+
+                    if not ads:
+                        log.warning("P2P.Army returned no ads")
+                        return None, [], ""
+
+                    # Extract prices
+                    prices = []
+                    for ad in ads:
+                        try:
+                            price = Decimal(str(ad.get("price", 0)))
+                            if price <= 0:
+                                continue
+
+                            methods = ad.get("payment_methods", ad.get("payMethods", []))
+                            if isinstance(methods, list):
+                                methods = [str(m).lower() for m in methods]
+                            else:
+                                methods = []
+
+                            has_preferred = any(
+                                pref in method
+                                for method in methods
+                                for pref in HTX_PREFERRED_METHODS
+                            )
+
+                            prices.append({
+                                "price": price,
+                                "methods": methods,
+                                "preferred": has_preferred,
+                                "merchant": ad.get("merchant", ad.get("userName", "unknown")),
+                            })
+                        except (ValueError, TypeError) as e:
+                            log.debug("Skip invalid ad: %s", e)
+
+                    if not prices:
+                        return None, [], ""
+
+                    # Sort: preferred first, then highest price
+                    prices.sort(key=lambda x: (x["preferred"], x["price"]), reverse=True)
+                    highest = prices[0]
+
+                    log.info("P2P.Army HTX price: %.2f CNY/USDT (merchant: %s)",
+                             highest["price"], highest["merchant"])
+
+                    return highest["price"], prices[:5], "p2p_army_htx"
+
+            return await self._fetch_with_retry(fetch, "P2P.Army")
+
+        except Exception as e:
+            log.warning("P2P.Army fetch failed: %s", e)
+            return None, [], ""
+
+    async def _fetch_htx_direct(self) -> Tuple[Optional[Decimal], List[dict], str]:
+        """Fetch directly from HTX P2P API (fallback)."""
+        session = await self._get_session()
+
         payload = {
             "coinId": 2,  # USDT
             "currency": 1,  # CNY
-            "tradeType": "sell",  # We want to buy USDT (seller sells)
+            "tradeType": "sell",
             "currPage": 1,
-            "payMethod": 0,  # All methods
+            "payMethod": 0,
             "acceptOrder": 0,
             "country": "",
             "blockType": "general",
@@ -79,69 +197,64 @@ class HTXP2PClient:
         }
 
         try:
-            async with session.post(HTX_P2P_API, json=payload) as r:
-                if r.status != 200:
-                    log.warning("HTX P2P API returned %d", r.status)
-                    return None, []
+            async def fetch():
+                async with session.post(HTX_P2P_API, json=payload) as r:
+                    if r.status != 200:
+                        log.warning("HTX P2P API returned %d", r.status)
+                        return None, [], ""
 
-                data = await r.json()
-                if data.get("code") != 200:
-                    log.warning("HTX P2P API error: %s", data.get("message"))
-                    return None, []
+                    data = await r.json()
+                    if data.get("code") != 200:
+                        log.warning("HTX P2P API error: %s", data.get("message"))
+                        return None, [], ""
 
-                ads = data.get("data", [])
-                if not ads:
-                    log.warning("No HTX P2P ads returned")
-                    return None, []
+                    ads = data.get("data", [])
+                    if not ads:
+                        return None, [], ""
 
-                # Find highest price, preferring Alipay/WeChat
-                prices = []
-                for ad in ads:
-                    price = Decimal(str(ad.get("price", 0)))
-                    methods = [m.get("name", "").lower() for m in ad.get("payMethods", [])]
+                    prices = []
+                    for ad in ads:
+                        try:
+                            price = Decimal(str(ad.get("price", 0)))
+                            methods = [m.get("name", "").lower() for m in ad.get("payMethods", [])]
+                            has_preferred = any(
+                                pref in method
+                                for method in methods
+                                for pref in HTX_PREFERRED_METHODS
+                            )
+                            prices.append({
+                                "price": price,
+                                "methods": methods,
+                                "preferred": has_preferred,
+                                "merchant": ad.get("userName", "unknown")
+                            })
+                        except (ValueError, TypeError):
+                            continue
 
-                    # Check if ad has preferred payment methods
-                    has_preferred = any(
-                        pref in method for method in methods for pref in HTX_PREFERRED_METHODS
-                    )
+                    if not prices:
+                        return None, [], ""
 
-                    prices.append({
-                        "price": price,
-                        "methods": methods,
-                        "preferred": has_preferred,
-                        "merchant": ad.get("userName", "unknown")
-                    })
+                    prices.sort(key=lambda x: (x["preferred"], x["price"]), reverse=True)
+                    highest = prices[0]
 
-                if not prices:
-                    return None, []
+                    log.info("HTX Direct price: %.2f CNY/USDT", highest["price"])
+                    return highest["price"], prices[:5], "htx_direct"
 
-                # Sort: preferred methods first, then by price descending
-                prices.sort(key=lambda x: (x["preferred"], x["price"]), reverse=True)
+            return await self._fetch_with_retry(fetch, "HTX Direct")
 
-                highest = prices[0]
-                log.info("HTX P2P highest price: %s CNY/USDT (merchant: %s, methods: %s)",
-                         highest["price"], highest["merchant"], highest["methods"])
-
-                return highest["price"], prices[:5]
-
-        except asyncio.TimeoutError:
-            log.warning("HTX P2P API timeout")
-        except aiohttp.ClientError as e:
-            log.warning("HTX P2P API client error: %s", e)
         except Exception as e:
-            log.exception("HTX P2P API unexpected error: %s", e)
+            log.warning("HTX Direct fetch failed: %s", e)
+            return None, [], ""
 
-        return None, []
-
-    async def _fetch_binance_p2p_fallback(self) -> Optional[Decimal]:
-        """Fallback to Binance P2P if HTX fails."""
+    async def _fetch_binance_fallback(self) -> Tuple[Optional[Decimal], str]:
+        """Final fallback to Binance P2P."""
         session = await self._get_session()
 
         payload = {
             "fiat": "CNY",
             "page": 1,
             "rows": 10,
-            "tradeType": "BUY",  # We buy USDT
+            "tradeType": "BUY",
             "asset": "USDT",
             "countries": [],
             "proMerchantAds": False,
@@ -150,70 +263,97 @@ class HTXP2PClient:
         }
 
         try:
-            headers = {"Content-Type": "application/json"}
-            async with session.post(BINANCE_P2P_API, json=payload, headers=headers) as r:
-                if r.status != 200:
-                    log.warning("Binance P2P fallback returned %d", r.status)
-                    return None
+            async def fetch():
+                headers = {"Content-Type": "application/json"}
+                async with session.post(BINANCE_P2P_API, json=payload, headers=headers) as r:
+                    if r.status != 200:
+                        return None, ""
 
-                data = await r.json()
-                ads = data.get("data", [])
-                if not ads:
-                    return None
+                    data = await r.json()
+                    ads = data.get("data", [])
+                    if not ads:
+                        return None, ""
 
-                # Get highest price
-                prices = [Decimal(ad["adv"]["price"]) for ad in ads if ad.get("adv", {}).get("price")]
-                if prices:
-                    highest = max(prices)
-                    log.info("Binance P2P fallback price: %s CNY/USDT", highest)
-                    return highest
+                    prices = []
+                    for ad in ads:
+                        try:
+                            price = Decimal(ad["adv"]["price"])
+                            prices.append(price)
+                        except (KeyError, ValueError, TypeError):
+                            continue
+
+                    if prices:
+                        highest = max(prices)
+                        log.info("Binance fallback price: %.2f CNY/USDT", highest)
+                        return highest, "binance_fallback"
+
+                    return None, ""
+
+            return await self._fetch_with_retry(fetch, "Binance Fallback")
 
         except Exception as e:
-            log.warning("Binance P2P fallback error: %s", e)
-
-        return None
+            log.warning("Binance fallback failed: %s", e)
+            return None, ""
 
     async def get_usdt_cny_price(self) -> Tuple[Decimal, dict]:
         """
         Get USDT/CNY price (highest from P2P).
         Returns (price, metadata).
+
+        Priority:
+        1. P2P.Army API (if API key configured)
+        2. HTX Direct P2P API
+        3. Binance P2P (final fallback)
+        4. Last cached value (emergency)
         """
         async with self._cache_lock:
             if self._is_fresh():
                 _, price, metadata = self._cache
                 return price, metadata
 
-            # Try HTX P2P first
-            price, ads = await self._fetch_htx_p2p()
+            price = None
+            ads = []
+            source = ""
 
-            if price is None:
-                # Try Binance fallback
-                price = await self._fetch_binance_p2p_fallback()
+            # 1. Try P2P.Army (preferred)
+            if P2P_ARMY_API_KEY:
+                price, ads, source = await self._fetch_p2p_army()
 
+            # 2. Try HTX Direct
             if price is None:
-                # Use last known good price
+                price, ads, source = await self._fetch_htx_direct()
+
+            # 3. Try Binance fallback
+            if price is None:
+                price, source = await self._fetch_binance_fallback()
+                ads = []
+
+            # 4. Use last known good price
+            if price is None:
                 if self._last_good_price:
-                    log.warning("Using last known good P2P price: %s", self._last_good_price)
+                    log.warning("All P2P sources failed, using cached price: %s", self._last_good_price)
                     return self._last_good_price, {
-                        "source": "cache_fallback",
-                        "timestamp": time.time(),
-                        "stale": True
+                        **(self._last_good_metadata or {}),
+                        "stale": True,
+                        "cache_reason": "all_sources_failed",
                     }
-                raise RuntimeError("P2P price unavailable and no fallback")
+                raise RuntimeError("P2P price unavailable: all sources failed and no cache")
 
-            # Update cache and last good price
+            # Update cache
             metadata = {
-                "source": "htx_p2p" if ads else "binance_p2p",
+                "source": source,
                 "timestamp": time.time(),
                 "stale": False,
-                "top_ads": ads[:3] if ads else []
+                "top_ads": ads[:3] if ads else [],
             }
             self._cache = (time.time(), price, metadata)
             self._last_good_price = price
+            self._last_good_metadata = metadata
 
             return price, metadata
 
     def clear_cache(self):
+        """Clear cached price."""
         self._cache = None
 
 

@@ -33,6 +33,10 @@ DISCOUNT_USDT_LOW = Decimal(os.getenv("DISCOUNT_USDT_LOW", "-0.010"))    # -1.0%
 HTX_P2P_TTL_SECONDS = int(os.getenv("HTX_P2P_TTL_SECONDS", "45"))  # 30-60s recommended
 HTX_PREFERRED_METHODS = os.getenv("HTX_PREFERRED_METHODS", "alipay,wechat").lower().split(",")
 
+# P2P.Army API (preferred source for P2P rates)
+# Get API key from: https://p2p.army/en/api_docs
+P2P_ARMY_API_KEY = os.getenv("P2P_ARMY_API_KEY", "")
+
 # =============================================================================
 # CBA (Central Bank of Armenia) Configuration
 # =============================================================================
