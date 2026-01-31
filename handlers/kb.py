@@ -3,7 +3,7 @@ Knowledge Base handler for user-facing and operator texts.
 Admin-only access to educational content.
 
 Texts rewritten for new pricing model:
-- Minimum order: 5000 CNY
+- Մdelays delays delays delays delays 5000 ¥
 - HTX P2P rates
 - CBA official rates
 - Tiered discounts
@@ -30,11 +30,11 @@ def is_admin(user: types.User | None) -> bool:
 
 USER_TEXTS = {
     "intro_short": {
-        "title": "📱 Կdelays delays delays (Կdelays delays delays)",
+        "title": "📱 Արագ delays delays",
         "text": (
-            "🇨🇳 <b>Highbit — Չdelays delays delays delays delays delays delays delays delays:</b>\n\n"
-            "1️⃣ Գրdelays delays delays delays delays (@HighbitChinabot կdelays @Highbitagent)\n"
-            "2️⃣ Delays delays delays delays delays delays (delays delays 5000 ¥)\n"
+            "🇨🇳 <b>Highbit — Delays delays delays delays delays delays delays delays delays:</b>\n\n"
+            "1️⃣ Գdelays delays delays delays delays (@HighbitChinabot կdelays @Highbitagent)\n"
+            "2️⃣ Գdelays delays delays delays delays (delays delays 5000 ¥)\n"
             "3️⃣ Delays delays delays delays delays delays delays delays (Alipay/WeChat/delays delays)\n"
             "4️⃣ Delays delays delays delays delays delays delays delays delays delays\n"
             "5️⃣ 20-60 delays delays delays delays delays delays delays delays!\n\n"
@@ -46,99 +46,81 @@ USER_TEXTS = {
         ),
     },
     "intro_full": {
-        "title": "📖 Delays delays delays delays delays delays delays",
+        "title": "📖 Սկdelays delays delays delays",
         "text": (
-            "👋 <b>Delays delays delays Highbit!</b>\n\n"
-            "Delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays:\n"
-            "• Alipay (delays delays delays delays delays)\n"
-            "• WeChat Pay\n"
-            "• Delays delays delays delays delays delays delays\n\n"
-            "<b>📌 Delays delays delays:</b>\n"
-            f"• Delays delays delays: <b>{MIN_ORDER_CNY} ¥</b> CNY\n"
-            "• Delays delays delays: AMD, USD, RUB, USDT\n"
-            "• Delays delays delays: 20-60 delays delays\n"
-            "• Delays delays delays — delays delays delays delays delays delays\n\n"
-            "<b>💰 Delays delays delays delays delays:</b>\n"
-            "• Delays delays delays delays delays delays delays delays delays delays delays\n"
-            "• $4000+ USD delays delays — delays delays delays delays\n\n"
-            "<b>📲 Delays delays delays delays delays:</b>\n"
-            "1. Delays delays <code>/transfer</code> delays delays delays\n"
-            "2. Delays delays delays delays (delays delays 5000 ¥)\n"
-            "3. Delays delays delays delays delays delays delays (Alipay/WeChat/delays)\n"
-            "4. Delays delays delays delays delays delays delays (AMD/USD/RUB/USDT)\n"
-            "5. Delays delays delays delays delays QR delays delays\n"
-            "6. Delays delays delays delays delays delays delays delays!\n\n"
-            "📞 Delays delays: @Highbitagent\n"
-            "📢 Delays delays: @Highbitchannel\n"
-            "💼 Delays delays: @ChinaArmeniaBusiness"
+            " Delays delays 👋 Delays delays delays delays delays delays delays.\n\n"
+            "Delays delays delays delays delays delays delays delays delays Delays delays delays delays delays:\n"
+            "✅ Alipay / WeChat / delays delays delays.\n"
+            "📌 Delays delays delays delays delays 5000 ¥\n"
+            "⏱ Delays delays delays delays 20–60 delays delays.\n\n"
+            "Delays delays delays delays delays delays delays /transfer delays delays delays delays delays @Highbitagent"
         ),
     },
     "how_to_buy": {
-        "title": "💰 Delays delays delays CNY delays delays delays",
+        "title": "💰  Delays delays delays delays CNY",
         "text": (
-            "<b>Delays delays delays delays delays delays CNY delays delays:</b>\n\n"
-            "<b>1️⃣ Delays delays delays delays delays delays</b>\n"
-            "• Delays delays delays @Highbitagent delays delays delays delays delays delays\n"
-            "• Delays delays <code>/transfer</code> delays @HighbitChinabot\n\n"
-            "<b>2️⃣ Delays delays delays delays delays</b>\n"
-            f"• Delays delays delays delays delays (delays delays {MIN_ORDER_CNY} ¥)\n"
-            "• Delays delays delays delays delays delays (Alipay/WeChat/delays delays)\n"
-            "• Delays delays delays delays delays delays delays (AMD/USD/RUB/USDT)\n"
-            "• QR delays delays delays delays delays delays delays delays\n\n"
-            "<b>3️⃣ Delays delays delays delays delays delays</b>\n"
-            "• <b>AMD/USD delays:</b> Delays delays delays delays delays delays delays delays delays delays delays\n"
-            "• <b>RUB delays:</b> Delays delays delays delays delays delays delays delays delays\n"
-            "• <b>USDT:</b> Delays delays delays delays delays delays delays delays delays delays\n\n"
-            "<b>4️⃣ Delays delays delays delays!</b>\n"
-            "• 20-60 delays delays delays delays delays delays delays delays delays!\n\n"
-            "📊 Delays delays delays delays @Highbitchannel"
+            "Delays delays ☀️\n\n"
+            "📌 Delays delays delays delays delays ¥ (CNY) delays delays delays delays:\n"
+            "✅ Alipay\n"
+            "✅ WeChat\n"
+            "✅ Delays delays delays delays delays delays\n\n"
+            "📌 Delays delays delays delays 5000 ¥\n\n"
+            "Delays delays delays delays delays delays delays delays:\n"
+            "1) Delays delays delays delays ¥-delays (delays. 8000 ¥)\n"
+            "2) Delays delays delays delays delays delays (Alipay / WeChat / Bank)\n"
+            "3) Delays delays delays delays delays delays delays (AMD / USD / RUB delays delays / USDT)\n"
+            "4) Delays delays delays QR delays delays (Alipay/WeChat) delays delays delays delays delays delays delays (Bank)\n\n"
+            "✅ Delays delays delays delays /transfer\n"
+            "📩 Delays delays delays delays delays delays @Highbitagent\n\n"
+            "⏱ Delays delays delays 20–60 delays delays.\n"
+            "📢 Delays delays delays delays delays delays @Highbitchannel"
         ),
     },
     "pricing": {
-        "title": "📊 Delays delays delays delays delays delays",
+        "title": "📊 Delays delays delays delays delays delays delays",
         "text": (
-            "<b>Delays delays delays delays delays delays delays delays:</b>\n\n"
-            "<b>📈 USDT/CNY delays delays:</b>\n"
-            "Delays delays delays HTX P2P delays delays delays (delays delays delays delays delays delays)\n\n"
-            "<b>💵 Delays delays delays delays delays:</b>\n"
-            "CBA (Delays delays delays delays delays) delays delays delays delays delays delays delays delays delays\n\n"
-            "<b>🎁 Delays delays delays delays:</b>\n"
-            "┌────────────────┬──────────────┬───────┐\n"
-            "│ Delays delays   │ FIAT         │ USDT  │\n"
-            "├────────────────┼──────────────┼───────┤\n"
-            "│ &lt; $4,000 USD   │ −1.5%        │ −1.0% │\n"
-            "│ ≥ $4,000 USD   │ −1.0%        │ −0.5% │\n"
-            "└────────────────┴──────────────┴───────┘\n\n"
-            f"<b>⚠️ Delays delays delays delays:</b> {MIN_ORDER_CNY} ¥ CNY\n\n"
-            "💡 Delays delays delays delays delays delays delays delays delays delays delays delays delays!"
+            "✅ Delays delays delays delays\n\n"
+            "1) Delays delays delays delays /transfer\n"
+            "2) Delays delays delays delays ¥ delays delays delays delays delays (delays. 5000 ¥)\n"
+            "3) Delays delays delays Alipay / WeChat / Bank\n"
+            "4) Delays delays delays delays delays delays delays delays AMD / USD / RUB delays delays / USDT\n"
+            "5) Delays delays delays QR delays delays (Alipay/WeChat) delays delays delays delays delays delays delays (Bank)\n"
+            "6) Delays delays delays delays delays delays delays delays delays delays\n"
+            "7) Delays delays delays delays delays delays delays delays delays delays delays delays ✅\n\n"
+            "⏱ Delays delays delays 20–60 delays delays."
         ),
     },
     "faq": {
-        "title": "❓ Delays delays delays delays delays delays delays",
+        "title": "❓ FAQ",
         "text": (
-            "<b>Delays delays delays delays delays delays delays:</b>\n\n"
-            "<b>❓ Delays delays delays delays delays delays delays delays?</b>\n"
-            "✅ 20-60 delays delays delays, delays delays delays delays delays delays delays delays delays.\n\n"
-            f"<b>❓ Delays delays delays delays delays delays delays delays delays?</b>\n"
-            f"✅ Delays delays <b>{MIN_ORDER_CNY} ¥</b> CNY (delays delays $700 USD).\n\n"
-            "<b>❓ Delays delays delays delays delays delays delays delays delays delays?</b>\n"
-            "✅ AMD (delays delays), USD, RUB (delays delays), USDT.\n\n"
-            "<b>❓ Delays delays delays delays delays delays delays delays delays delays?</b>\n"
-            "✅ Delays delays delays delays delays delays delays — delays delays delays delays delays delays.\n\n"
-            "<b>❓ Delays delays delays delays delays delays delays delays delays delays delays?</b>\n"
-            "✅ Delays delays delays delays delays delays delays delays delays delays delays delays delays."
+            "📊 Delays delays delays delays delays delays delays delays delays\n\n"
+            "Delays delays delays delays:\n"
+            "1) HTX P2P (USDT/CNY)\n"
+            "2) ՀՀ Delays delays delays delays Delays delays (CBA)\n\n"
+            "💰 Delays delays delays (USD delays delays delays delays)\n"
+            "✅ AMD / USD / RUB (delays delays)\n"
+            "• &lt;$4000 → -1.5%\n"
+            "• ≥$4000 → -1.0%\n\n"
+            "✅ USDT\n"
+            "• &lt;$4000 → -1.0%\n"
+            "• ≥$4000 → -0.5%\n\n"
+            "📌 Delays delays delays delays delays delays 5000 ¥"
         ),
     },
     "contact": {
-        "title": "📞 Delays delays delays",
+        "title": "📞 Կdelays",
         "text": (
-            "<b>Delays delays delays delays delays delays:</b>\n\n"
-            "📱 <b>WhatsApp:</b> +79181309690\n"
-            "📩 <b>Telegram delays delays:</b> @Highbitagent\n"
-            "🤖 <b>Telegram delays:</b> @HighbitChinabot\n"
-            "📢 <b>Delays delays:</b> @Highbitchannel\n"
-            "💼 <b>Delays delays delays:</b> @ChinaArmeniaBusiness\n\n"
-            "⏰ Delays delays delays: 10:00 - 22:00 (Delays delays)"
+            "❓ Delays delays delays delays delays delays delays delays\n\n"
+            "1) Delays delays delays delays delays delays delays delays delays delays delays delays delays.\n"
+            "✅ Delays delays delays 20–60 delays delays.\n\n"
+            "2) Delays delays delays delays delays delays delays delays.\n"
+            "✅ 5000 ¥\n\n"
+            "3) Delays delays delays delays delays delays delays.\n"
+            "✅ AMD, USD, RUB (delays delays delays delays), USDT\n\n"
+            "4) Delays delays delays Alipay/WeChat-delays delays delays?\n"
+            "✅ QR delays delays delays delays delays delays.\n\n"
+            "5) Delays delays delays delays delays delays delays delays delays delays?\n"
+            "✅ Delays delays, delays delays delays delays delays delays @Highbitagent"
         ),
     },
 }
@@ -150,84 +132,50 @@ USER_TEXTS = {
 
 OPERATOR_TEXTS = {
     "workflow": {
-        "title": "📋 Delays delays delays delays delays",
+        "title": "📋 Օdelays delays delays delays workflow",
         "text": (
-            "<b>Delays delays delays delays delays delays delays delays:</b>\n\n"
-            "<b>1️⃣ DELAYS DELAYS DELAYS DELAYS DELAYS:</b>\n"
-            "• Delays delays CNY delays delays delays? (delays delays 5000 ¥)\n"
-            "• Delays delays delays delays? (delays delays delays delays delays)\n"
-            "• Delays delays delays delays delays delays? (AMD / USD / RUB / USDT)\n"
-            "• Delays delays delays delays delays? (Alipay / WeChat / delays delays)\n"
-            "• QR delays delays delays delays delays delays delays delays?\n\n"
-            "<b>2️⃣ Delays delays delays delays delays:</b>\n"
-            "• Delays delays delays delays delays delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays\n\n"
-            "<b>3️⃣ Delays delays delays delays delays:</b>\n"
-            "• ✋ Assign — delays delays delays delays delays\n"
-            "• 📞 Contacted — delays delays delays delays delays delays\n"
-            "• 💵 Paid — delays delays delays delays delays delays delays\n"
-            "• 🚀 Sent — delays delays delays delays delays delays delays\n"
-            "• ✅ Done — delays delays delays delays!\n\n"
-            "<b>4️⃣ Delays delays delays:</b>\n"
-            "• Delays delays delays delays delays delays delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays delays delays"
+            "📞 Կdelays\n\n"
+            "📩 Օdelays delays delays delays @Highbitagent\n"
+            "🤖 Բdelays delays @HighbitChinabot\n"
+            "📢  Delays delays @Highbitchannel\n"
+            "💼 Delays delays delays @ChinaArmeniaBusiness\n\n"
+            "⏰ Delays delays. delays delays 10:00–22:00"
         ),
     },
     "verification": {
         "title": "🔒 Delays delays delays delays delays delays",
         "text": (
-            "<b>⚠️ Delays delays delays delays delays delays delays delays:</b>\n\n"
-            "<b>✅ Delays delays delays delays:</b>\n"
-            "• Delays delays delays delays delays delays delays delays delays delays delays\n"
-            "• QR delays delays delays delays delays delays delays delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays delays\n\n"
-            "<b>❌ Delays delays delays delays:</b>\n"
-            "• Delays delays delays delays delays delays — delays delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays delays\n\n"
-            "<b>📝 Delays delays delays:</b>\n"
-            "Delays delays delays delays delays delays delays delays delays delays delays delays delays delays."
+            "👨‍💼 Օdelays delays delays delays workflow\n\n"
+            "Delays delays delays delays delays delays delays:\n"
+            "1) Delays delays ¥ delays delays delays (delays. 5000 ¥)\n"
+            "2) Delays delays delays delays delays Alipay/WeChat/Bank\n"
+            "3) Delays delays delays delays delays delays AMD/USD/RUB delays delays delays delays USDT\n"
+            "4) QR delays delays delays delays delays delays delays delays\n"
+            "5) Delays delays delays delays delays delays delays delays delays delays delays\n\n"
+            "Delays delays delays delays delays delays → delays delays delays delays → delays delays delays → delays delays delays delays → status update"
         ),
     },
     "templates": {
-        "title": "💬 Delays delays delays delays delays delays",
+        "title": "💬 Օdelays delays delays delays delays delays delays delays",
         "text": (
-            "<b>Delays delays delays delays delays delays delays delays delays:</b>\n\n"
-            "📝 <b>Delays delays delays delays:</b>\n"
-            "<code>Delays delays Highbit delays delays delays! 👋 Delays delays delays delays delays delays delays delays?</code>\n\n"
-            "📝 <b>Delays delays delays delays delays:</b>\n"
-            "<code>Delays delays delays delays delays delays delays delays:\n"
-            "• CNY delays delays delays\n"
-            "• Delays delays (Alipay/WeChat/delays delays)\n"
-            "• Delays delays delays delays delays delays\n"
-            "• QR delays delays delays delays delays</code>\n\n"
-            "📝 <b>Delays delays delays delays:</b>\n"
-            "<code>✅ Delays delays delays delays! Delays delays 20-60 delays delays delays delays delays delays.</code>\n\n"
-            "📝 <b>Delays delays delays:</b>\n"
-            "<code>🚀 Delays delays delays delays! Delays delays delays delays delays delays delays delays delays.</code>\n\n"
-            "📝 <b>Delays delays delays delays:</b>\n"
-            "<code>✅ Delays delays delays delays delays delays! Delays delays delays delays Highbit delays delays! 🙏</code>"
+            "🔒 Delays delays delays delays delays delays\n\n"
+            "✅ QR/delays delays delays delays delays delays delays delays delays delays delays delays/delays delays delays request-delays delays\n"
+            "✅ Delays delays delays delays delays delays delays delays delays delays delays delays\n"
+            "✅ Delays delays delays delays/delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays"
         ),
     },
     "pricing_guide": {
-        "title": "💰 Delays delays delays delays delays delays",
+        "title": "💰 Delays delays delays delays delays delays delays delays delays delays",
         "text": (
-            "<b>Delays delays delays delays delays delays delays delays:</b>\n\n"
-            "<b>1. HTX P2P delays delays:</b>\n"
-            "• Delays delays delays HTX P2P delays delays delays delays delays delays\n"
-            "• Delays delays: USDT/CNY\n"
-            "• Delays delays: Alipay / WeChat delays delays delays delays delays\n\n"
-            "<b>2. CBA delays delays delays:</b>\n"
-            "• AMD ↔ USD, AMD ↔ RUB, AMD ↔ CNY delays delays delays delays\n"
-            "• Delays delays delays delays delays delays delays delays delays delays delays delays delays delays\n\n"
-            "<b>3. Delays delays delays delays:</b>\n"
-            "• Delays delays delays delays delays delays delays delays delays delays delays delays delays\n"
-            "• $4000+ delays delays — delays delays delays delays (delays delays delays)\n\n"
-            "<b>4. Delays delays delays delays:</b>\n"
-            "<code>USDT_needed = CNY_amount / HTX_price\n"
-            "Amount_due = USDT_needed × (1 + discount)</code>\n\n"
-            "Delays delays delays delays delays delays delays delays delays delays delays delays delays delays."
+            "💬 Delays delays delays delays delays delays\n\n"
+            "1) Delays delays delays\n"
+            "Delays delays 👋 Delays delays delays delays delays delays delays delays ¥ delays delays delays delays delays delays (delays. 5000 ¥) delays delays delays delays delays delays Alipay/WeChat/Bank.\n\n"
+            "2) QR delays delays delays\n"
+            "Delays delays delays delays QR delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays.\n\n"
+            "3) Delays delays delays\n"
+            "Delays delays delays delays delays delays AMD/USD, RUB (delays delays delays delays) delays delays USDT. Delays delays delays delays delays delays?\n\n"
+            "4) Delays delays delays\n"
+            "Delays delays delays 20–60 delays delays delays delays delays delays delays."
         ),
     },
 }
@@ -245,13 +193,13 @@ async def cmd_kb(m: types.Message):
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="👤 Delays delays delays delays", callback_data="kb_menu_user")],
-            [InlineKeyboardButton(text="👨‍💼 Delays delays delays delays", callback_data="kb_menu_operator")],
+            [InlineKeyboardButton(text="👤 Հdelays delays delays delays delays", callback_data="kb_menu_user")],
+            [InlineKeyboardButton(text="👨‍💼 Օdelays delays delays delays delays", callback_data="kb_menu_operator")],
         ]
     )
 
     await m.answer(
-        "📚 <b>Knowledge Base</b>\n\n"
+        "📚 <b>Տdelays delays delays delays</b>\n\n"
         "Delays delays delays delays delays:",
         reply_markup=keyboard,
     )
@@ -266,10 +214,10 @@ async def cb_kb_user_menu(callback: types.CallbackQuery):
         [InlineKeyboardButton(text=v["title"], callback_data=f"kb_user_{k}")]
         for k, v in USER_TEXTS.items()
     ]
-    buttons.append([InlineKeyboardButton(text="⬅️ Delays delays", callback_data="kb_back_main")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_back_main")])
 
     await callback.message.edit_text(
-        "👤 <b>Delays delays delays delays delays:</b>\n\n"
+        "👤 <b>Հdelays delays delays delays delays delays:</b>\n\n"
         "Delays delays delays delays delays:",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
@@ -284,10 +232,10 @@ async def cb_kb_operator_menu(callback: types.CallbackQuery):
         [InlineKeyboardButton(text=v["title"], callback_data=f"kb_operator_{k}")]
         for k, v in OPERATOR_TEXTS.items()
     ]
-    buttons.append([InlineKeyboardButton(text="⬅️ Delays delays", callback_data="kb_back_main")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_back_main")])
 
     await callback.message.edit_text(
-        "👨‍💼 <b>Delays delays delays delays delays:</b>\n\n"
+        "👨‍💼 <b>Օdelays delays delays delays delays delays:</b>\n\n"
         "Delays delays delays delays delays:",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
@@ -297,12 +245,12 @@ async def cb_kb_operator_menu(callback: types.CallbackQuery):
 async def cb_kb_back(callback: types.CallbackQuery):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="👤 Delays delays delays delays", callback_data="kb_menu_user")],
-            [InlineKeyboardButton(text="👨‍💼 Delays delays delays delays", callback_data="kb_menu_operator")],
+            [InlineKeyboardButton(text="👤 Հdelays delays delays delays delays", callback_data="kb_menu_user")],
+            [InlineKeyboardButton(text="👨‍💼 Օdelays delays delays delays delays", callback_data="kb_menu_operator")],
         ]
     )
     await callback.message.edit_text(
-        "📚 <b>Knowledge Base</b>\n\nDelays delays delays delays delays:",
+        "📚 <b>Տdelays delays delays delays</b>\n\nDelays delays delays delays delays:",
         reply_markup=keyboard,
     )
 
@@ -319,8 +267,8 @@ async def cb_kb_user_item(callback: types.CallbackQuery):
         return await callback.answer("Not found", show_alert=True)
 
     buttons = [
-        [InlineKeyboardButton(text="📋 Delays delays delays delays delays", callback_data=f"kb_copy_user_{key}")],
-        [InlineKeyboardButton(text="⬅️ Delays delays", callback_data="kb_menu_user")],
+        [InlineKeyboardButton(text="📋 Պdelays delays delays delays delays", callback_data=f"kb_copy_user_{key}")],
+        [InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_menu_user")],
     ]
 
     await callback.message.edit_text(
@@ -341,7 +289,7 @@ async def cb_kb_operator_item(callback: types.CallbackQuery):
         return await callback.answer("Not found", show_alert=True)
 
     buttons = [
-        [InlineKeyboardButton(text="⬅️ Delays delays", callback_data="kb_menu_operator")],
+        [InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_menu_operator")],
     ]
 
     await callback.message.edit_text(
@@ -362,7 +310,7 @@ async def cb_kb_copy(callback: types.CallbackQuery):
     if not item:
         return await callback.answer("Not found", show_alert=True)
 
-    await callback.answer("Delays delays delays delays ↓")
+    await callback.answer("Պdelays delays delays delays ↓")
     await callback.message.answer(item["text"])
 
 
