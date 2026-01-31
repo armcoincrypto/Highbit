@@ -47,27 +47,22 @@ def format_daily_rates_new(
         DISCOUNT_FIAT_LOW, DISCOUNT_FIAT_HIGH
     )
 
-    # Get CBA rates (how many AMD per 1 unit of foreign currency)
-    usd_amd = cba_rates.get("USD", Decimal("0"))
-    rub_amd = cba_rates.get("RUB", Decimal("0"))
-    cny_amd = cba_rates.get("CNY", Decimal("0"))
-
-    # Calculate cross rates from CBA
-    if cny_amd > 0:
-        usd_cny_market = usd_amd / cny_amd
-        cny_rub_market = cny_amd / rub_amd if rub_amd > 0 else Decimal("0")
-    else:
-        usd_cny_market = Decimal("0")
-        cny_rub_market = Decimal("0")
+    # Get CBA rate: how many AMD per 1 USD
+    usd_amd = cba_rates.get("USD", Decimal("380"))
 
     # Multipliers for both tiers
     # LOW = standard rate (< $4000), HIGH = VIP rate (>= $4000)
     low_mult = Decimal("1") + DISCOUNT_USDT_LOW   # e.g., 0.987 for -1.3%
     high_mult = Decimal("1") + DISCOUNT_USDT_HIGH  # e.g., 0.991 for -0.9%
 
-    # USDT/CNY rates for both tiers
+    # USDT/CNY rates for both tiers (discounted)
     usdt_cny_standard = (usdt_cny * low_mult).quantize(Decimal("0.01"), ROUND_HALF_UP)
     usdt_cny_vip = (usdt_cny * high_mult).quantize(Decimal("0.01"), ROUND_HALF_UP)
+
+    # AMD/CNY rate = USD_AMD / USDT_CNY
+    # Example: 380 / 6.85 = 55.47 AMD per 1 CNY
+    cny_amd_standard = (usd_amd / usdt_cny_standard).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    cny_amd_vip = (usd_amd / usdt_cny_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     # Source indicator
     source = ""
@@ -78,7 +73,9 @@ def format_daily_rates_new(
     return (
         "📊 <b>Highbit — Our Rates</b>\n\n"
         f"🔹 1 USDT = <b>{usdt_cny_standard}</b> CNY\n"
-        f"🔹 1 USDT = <b>{usdt_cny_vip}</b> CNY  💎 $4000+{source}\n\n"
+        f"🔹 1 USDT = <b>{usdt_cny_vip}</b> CNY  💎 $4000+\n\n"
+        f"🔹 1 CNY = <b>{cny_amd_standard}</b> AMD\n"
+        f"🔹 1 CNY = <b>{cny_amd_vip}</b> AMD  💎 $4000+{source}\n\n"
         "📢 @Highbitchannel\n"
         "🤖 @Highbitagent"
     )
