@@ -32,15 +32,15 @@ def format_daily_rates_new(
 ) -> str:
     """
     Format daily rates using new CBA + HTX P2P services.
-    Shows "OUR RATES" with both discount tiers.
+    Shows rates for USD, AMD, and USDT with their respective thresholds.
 
     Args:
-        usdt_cny: USDT/CNY price from HTX P2P (market rate)
+        usdt_cny: USDT/CNY price from P2P (market rate)
         cba_rates: CBA official rates (AMD-based)
-        htx_meta: Metadata from HTX P2P (source, stale flag)
+        htx_meta: Metadata from P2P (source, stale flag)
 
     Returns:
-        Formatted rates message with both discount tiers
+        Formatted rates message with beautiful layout
     """
     from config import (
         DISCOUNT_USDT_LOW, DISCOUNT_USDT_HIGH,
@@ -50,19 +50,25 @@ def format_daily_rates_new(
     # Get CBA rate: how many AMD per 1 USD
     usd_amd = cba_rates.get("USD", Decimal("380"))
 
-    # Multipliers for both tiers
-    # LOW = standard rate (< $4000), HIGH = VIP rate (>= $4000)
-    low_mult = Decimal("1") + DISCOUNT_USDT_LOW   # e.g., 0.987 for -1.3%
-    high_mult = Decimal("1") + DISCOUNT_USDT_HIGH  # e.g., 0.991 for -0.9%
+    # FIAT multipliers (USD/AMD): -1.0% standard, -0.7% VIP
+    fiat_low = Decimal("1") + DISCOUNT_FIAT_LOW    # 0.99
+    fiat_high = Decimal("1") + DISCOUNT_FIAT_HIGH  # 0.993
 
-    # USDT/CNY rates for both tiers (discounted)
-    usdt_cny_standard = (usdt_cny * low_mult).quantize(Decimal("0.01"), ROUND_HALF_UP)
-    usdt_cny_vip = (usdt_cny * high_mult).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    # USDT multipliers: -1.3% standard, -0.9% VIP
+    usdt_low = Decimal("1") + DISCOUNT_USDT_LOW    # 0.987
+    usdt_high = Decimal("1") + DISCOUNT_USDT_HIGH  # 0.991
 
-    # AMD/CNY rate = USD_AMD / USDT_CNY
-    # Example: 380 / 6.85 = 55.47 AMD per 1 CNY
-    cny_amd_standard = (usd_amd / usdt_cny_standard).quantize(Decimal("0.01"), ROUND_HALF_UP)
-    cny_amd_vip = (usd_amd / usdt_cny_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    # USD/CNY rates (using FIAT discount)
+    usd_cny_standard = (usdt_cny * fiat_low).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    usd_cny_vip = (usdt_cny * fiat_high).quantize(Decimal("0.01"), ROUND_HALF_UP)
+
+    # AMD/CNY rates = USD_AMD / USD_CNY (using FIAT discount)
+    cny_amd_standard = (usd_amd / usd_cny_standard).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    cny_amd_vip = (usd_amd / usd_cny_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
+
+    # USDT/CNY rates (using USDT discount)
+    usdt_cny_standard = (usdt_cny * usdt_low).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    usdt_cny_vip = (usdt_cny * usdt_high).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     # Source indicator
     source = ""
@@ -72,10 +78,15 @@ def format_daily_rates_new(
 
     return (
         "📊 <b>Highbit — Our Rates</b>\n\n"
-        f"🔹 1 USDT = <b>{usdt_cny_standard}</b> CNY\n"
-        f"🔹 1 USDT = <b>{usdt_cny_vip}</b> CNY  💎 $4000+\n\n"
-        f"🔹 1 CNY = <b>{cny_amd_standard}</b> AMD\n"
-        f"🔹 1 CNY = <b>{cny_amd_vip}</b> AMD  💎 $4000+{source}\n\n"
+        f"🇺🇸 USD → CNY\n"
+        f"├ &lt; $4,000:     1 USD = <b>{usd_cny_standard}</b> CNY\n"
+        f"└ ≥ $4,000:     1 USD = <b>{usd_cny_vip}</b> CNY\n\n"
+        f"🇦🇲 AMD → CNY\n"
+        f"├ &lt; 1.5M AMD:  1 CNY = <b>{cny_amd_standard}</b> AMD\n"
+        f"└ ≥ 1.5M AMD:  1 CNY = <b>{cny_amd_vip}</b> AMD\n\n"
+        f"📲 USDT → CNY\n"
+        f"├ &lt; $4,000:     1 USDT = <b>{usdt_cny_standard}</b> CNY\n"
+        f"└ ≥ $4,000:     1 USDT = <b>{usdt_cny_vip}</b> CNY{source}\n\n"
         "📢 @Highbitchannel\n"
         "🤖 @Highbitagent"
     )
