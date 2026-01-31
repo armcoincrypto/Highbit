@@ -309,7 +309,9 @@ async def _build_discounts_message() -> str:
             lines.append(f"<b>{currency}</b>")
             current_currency = currency
 
-        lines.append(f"  {threshold}: <code>{pct}</code>")
+        # Escape < for HTML
+        threshold_escaped = threshold.replace("<", "&lt;")
+        lines.append(f"  {threshold_escaped}: <code>{pct}</code>")
 
     lines.append("\n<i>Tap a button to edit</i>")
 
@@ -378,8 +380,10 @@ async def start_edit_discount(callback: CallbackQuery, state: FSMContext):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=preset_buttons)
 
+    # Escape < for HTML
+    threshold_escaped = threshold.replace("<", "&lt;")
     await callback.message.edit_text(
-        f"✏️ <b>Edit {currency} {threshold}</b>\n\n"
+        f"✏️ <b>Edit {currency} {threshold_escaped}</b>\n\n"
         f"Current: <code>{current_pct}</code>\n\n"
         f"Choose a preset or type a value:\n"
         f"<i>Example: -1.5 for -1.5%</i>",
