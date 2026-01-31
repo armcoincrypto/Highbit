@@ -2,14 +2,15 @@
 Knowledge Base handler for user-facing and operator texts.
 Admin-only access to educational content.
 
-Texts rewritten for new pricing model:
-- Մdelays delays delays delays delays 5000 ¥
-- HTX P2P rates
-- CBA official rates
+Pricing model references:
+- Minimum transfer: 5000 ¥ (CNY)
+- HTX P2P rates (USDT/CNY)
+- CBA official rates (AMD/USD/RUB)
 - Tiered discounts
 """
-import logging
+from __future__ import annotations
 
+import logging
 from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -21,106 +22,99 @@ router = Router()
 
 
 def is_admin(user: types.User | None) -> bool:
-    return user and user.id in ADMIN_IDS
+    return bool(user) and user.id in ADMIN_IDS
 
 
 # ============================================================================
 # USER TEXTS (Customer-facing, Armenian)
 # ============================================================================
-
-USER_TEXTS = {
+USER_TEXTS: dict[str, dict[str, str]] = {
     "intro_short": {
-        "title": "📱 Արագ delays delays",
+        "title": "📱 Արագ ուղեցույց",
         "text": (
-            "🇨🇳 <b>Highbit — Delays delays delays delays delays delays delays delays delays:</b>\n\n"
-            "1️⃣ Գdelays delays delays delays delays (@HighbitChinabot կdelays @Highbitagent)\n"
-            "2️⃣ Գdelays delays delays delays delays (delays delays 5000 ¥)\n"
-            "3️⃣ Delays delays delays delays delays delays delays delays (Alipay/WeChat/delays delays)\n"
-            "4️⃣ Delays delays delays delays delays delays delays delays delays delays\n"
-            "5️⃣ 20-60 delays delays delays delays delays delays delays delays!\n\n"
-            "✅ Delays delays delays delays delays delays delays delays\n"
-            "✅ Delays delays delays delays delays HTX P2P delays\n"
-            "✅ Delays delays delays delays delays delays delays delays\n\n"
-            "📞 Delays: @Highbitagent\n"
-            "📢 Delays: @Highbitchannel"
+            "🇨🇳 <b>Highbit — փոխանցումներ դեպի Չինաստան</b>\n\n"
+            "1️⃣ Գրեք մեզ՝ @Highbitagent (կամ բացեք հայտ՝ <code>/transfer</code>)\n"
+            f"2️⃣ Գրեք գումարի չափը (մին․ <b>{MIN_ORDER_CNY} ¥</b>)\n"
+            "3️⃣ Ընտրեք մեթոդը՝ <b>Alipay / WeChat / Bank</b>\n"
+            "4️⃣ Ուղարկեք QR կոդը (Alipay/WeChat) կամ բանկային տվյալները (Bank)\n"
+            "5️⃣ Ստացեք հաշվարկը → վճարեք → մենք կատարում ենք փոխանցումը ✅\n\n"
+            "⏱ Սովորաբար պատրաստ է <b>20–60 րոպեում</b>\n"
+            "📢 Թարմ տեղեկություն՝ @Highbitchannel\n"
+            "📞 Օպերատոր՝ @Highbitagent"
         ),
     },
     "intro_full": {
-        "title": "📖 Սկdelays delays delays delays",
+        "title": "📖 Սկսելու ուղեցույց",
         "text": (
-            " Delays delays 👋 Delays delays delays delays delays delays delays.\n\n"
-            "Delays delays delays delays delays delays delays delays delays Delays delays delays delays delays:\n"
-            "✅ Alipay / WeChat / delays delays delays.\n"
-            "📌 Delays delays delays delays delays 5000 ¥\n"
-            "⏱ Delays delays delays delays 20–60 delays delays.\n\n"
-            "Delays delays delays delays delays delays delays /transfer delays delays delays delays delays @Highbitagent"
+            "Ողջույն 👋\n\n"
+            "Մենք օգնում ենք ուղարկել <b>¥ (CNY)</b> դեպի Չինաստան՝\n"
+            "✅ Alipay\n"
+            "✅ WeChat\n"
+            "✅ Չինական բանկային հաշիվ\n\n"
+            f"📌 <b>Մինիմալ փոխանցում՝ {MIN_ORDER_CNY} ¥</b>\n"
+            "⏱ Սովորաբար պատրաստ է 20–60 րոպեում։\n\n"
+            "<b>Ինչպես սկսել</b>\n"
+            "1) Բացեք հայտ՝ <code>/transfer</code>\n"
+            "2) Կամ գրեք օպերատորին՝ @Highbitagent\n\n"
+            "📢 Ալիք՝ @Highbitchannel"
         ),
     },
     "how_to_buy": {
-        "title": "💰  Delays delays delays delays CNY",
+        "title": "💰 Ինչպես ուղարկել CNY",
         "text": (
-            "Delays delays ☀️\n\n"
-            "📌 Delays delays delays delays delays ¥ (CNY) delays delays delays delays:\n"
-            "✅ Alipay\n"
-            "✅ WeChat\n"
-            "✅ Delays delays delays delays delays delays\n\n"
-            "📌 Delays delays delays delays 5000 ¥\n\n"
-            "Delays delays delays delays delays delays delays delays:\n"
-            "1) Delays delays delays delays ¥-delays (delays. 8000 ¥)\n"
-            "2) Delays delays delays delays delays delays (Alipay / WeChat / Bank)\n"
-            "3) Delays delays delays delays delays delays delays (AMD / USD / RUB delays delays / USDT)\n"
-            "4) Delays delays delays QR delays delays (Alipay/WeChat) delays delays delays delays delays delays delays (Bank)\n\n"
-            "✅ Delays delays delays delays /transfer\n"
-            "📩 Delays delays delays delays delays delays @Highbitagent\n\n"
-            "⏱ Delays delays delays 20–60 delays delays.\n"
-            "📢 Delays delays delays delays delays delays @Highbitchannel"
+            "<b>Քայլ առ քայլ</b>\n\n"
+            "1) Բացեք հայտ՝ <code>/transfer</code>\n"
+            f"2) Գրեք՝ քանի ¥ եք ուզում ուղարկել (մին․ <b>{MIN_ORDER_CNY} ¥</b>)\n"
+            "3) Ընտրեք մեթոդը՝ Alipay / WeChat / Bank\n"
+            "4) Նշեք՝ ինչով եք վճարում՝ AMD / USD / RUB (քարտով) / USDT\n"
+            "5) Ուղարկեք QR կոդը (Alipay/WeChat) կամ բանկային տվյալները (Bank)\n"
+            "6) Ստացեք հաշվարկը և հաստատեք\n"
+            "7) Վճարումից հետո՝ մենք կատարում ենք փոխանցումը ✅\n\n"
+            "⏱ Սովորաբար՝ 20–60 րոպե։"
         ),
     },
     "pricing": {
-        "title": "📊 Delays delays delays delays delays delays delays",
+        "title": "📊 Փոխարժեք և հաշվարկ",
         "text": (
-            "✅ Delays delays delays delays\n\n"
-            "1) Delays delays delays delays /transfer\n"
-            "2) Delays delays delays delays ¥ delays delays delays delays delays (delays. 5000 ¥)\n"
-            "3) Delays delays delays Alipay / WeChat / Bank\n"
-            "4) Delays delays delays delays delays delays delays delays AMD / USD / RUB delays delays / USDT\n"
-            "5) Delays delays delays QR delays delays (Alipay/WeChat) delays delays delays delays delays delays delays (Bank)\n"
-            "6) Delays delays delays delays delays delays delays delays delays delays\n"
-            "7) Delays delays delays delays delays delays delays delays delays delays delays delays ✅\n\n"
-            "⏱ Delays delays delays 20–60 delays delays."
+            "<b>Ինչպես ենք հաշվում փոխարժեքը</b>\n\n"
+            "<b>Աղբյուրներ</b>\n"
+            "1) HTX P2P (USDT/CNY)\n"
+            "2) ՀՀ Կենտրոնական Բանկ (CBA) — պաշտոնական փոխարժեքներ\n\n"
+            "<b>Զեղչեր (USD համարժեքով)</b>\n"
+            "✅ AMD / USD / RUB (քարտով)\n"
+            "• <$4000 → -1.5%\n"
+            "• ≥$4000 → -1.0%\n\n"
+            "✅ USDT\n"
+            "• <$4000 → -1.0%\n"
+            "• ≥$4000 → -0.5%\n\n"
+            f"📌 Մինիմալ փոխանցում՝ <b>{MIN_ORDER_CNY} ¥</b>"
         ),
     },
     "faq": {
         "title": "❓ FAQ",
         "text": (
-            "📊 Delays delays delays delays delays delays delays delays delays\n\n"
-            "Delays delays delays delays:\n"
-            "1) HTX P2P (USDT/CNY)\n"
-            "2) ՀՀ Delays delays delays delays Delays delays (CBA)\n\n"
-            "💰 Delays delays delays (USD delays delays delays delays)\n"
-            "✅ AMD / USD / RUB (delays delays)\n"
-            "• &lt;$4000 → -1.5%\n"
-            "• ≥$4000 → -1.0%\n\n"
-            "✅ USDT\n"
-            "• &lt;$4000 → -1.0%\n"
-            "• ≥$4000 → -0.5%\n\n"
-            "📌 Delays delays delays delays delays delays 5000 ¥"
+            "<b>Հաճախ տրվող հարցեր</b>\n\n"
+            "<b>1) Քանի՞ րոպեում է պատրաստ լինում փոխանցումը</b>\n"
+            "✅ Սովորաբար 20–60 րոպեում։\n\n"
+            "<b>2) Ո՞րն է մինիմալ գումարը</b>\n"
+            f"✅ {MIN_ORDER_CNY} ¥\n\n"
+            "<b>3) Ինչով կարող եմ վճարել</b>\n"
+            "✅ AMD, USD, RUB (միայն քարտով), USDT\n\n"
+            "<b>4) Ի՞նչ է պետք Alipay/WeChat-ի համար</b>\n"
+            "✅ QR կոդը պարտադիր է։\n\n"
+            "<b>5) Կարո՞ղ եմ մեծ ծավալով անել</b>\n"
+            "✅ Այո, գրեք օպերատորին՝ @Highbitagent"
         ),
     },
     "contact": {
-        "title": "📞 Կdelays",
+        "title": "📞 Կապ",
         "text": (
-            "❓ Delays delays delays delays delays delays delays delays\n\n"
-            "1) Delays delays delays delays delays delays delays delays delays delays delays delays delays.\n"
-            "✅ Delays delays delays 20–60 delays delays.\n\n"
-            "2) Delays delays delays delays delays delays delays delays.\n"
-            "✅ 5000 ¥\n\n"
-            "3) Delays delays delays delays delays delays delays.\n"
-            "✅ AMD, USD, RUB (delays delays delays delays), USDT\n\n"
-            "4) Delays delays delays Alipay/WeChat-delays delays delays?\n"
-            "✅ QR delays delays delays delays delays delays.\n\n"
-            "5) Delays delays delays delays delays delays delays delays delays delays?\n"
-            "✅ Delays delays, delays delays delays delays delays delays @Highbitagent"
+            "<b>Կապ մեզ հետ</b>\n\n"
+            "📩 Օպերատոր՝ @Highbitagent\n"
+            "🤖 Բոթ՝ @HighbitChinabot\n"
+            "📢 Ալիք՝ @Highbitchannel\n"
+            "💼 Համայնք՝ @ChinaArmeniaBusiness\n\n"
+            "⏰ Աշխ. ժամեր՝ 10:00–22:00"
         ),
     },
 }
@@ -129,53 +123,54 @@ USER_TEXTS = {
 # ============================================================================
 # OPERATOR TEXTS (Internal playbook)
 # ============================================================================
-
-OPERATOR_TEXTS = {
+OPERATOR_TEXTS: dict[str, dict[str, str]] = {
     "workflow": {
-        "title": "📋 Օdelays delays delays delays workflow",
+        "title": "📋 Օպերատորի workflow",
         "text": (
-            "📞 Կdelays\n\n"
-            "📩 Օdelays delays delays delays @Highbitagent\n"
-            "🤖 Բdelays delays @HighbitChinabot\n"
-            "📢  Delays delays @Highbitchannel\n"
-            "💼 Delays delays delays @ChinaArmeniaBusiness\n\n"
-            "⏰ Delays delays. delays delays 10:00–22:00"
+            "<b>Օպերատորի սցենար</b>\n\n"
+            "Սկզբում հարցրու՝\n"
+            f"1) Քանի ¥ է ուզում (մին․ {MIN_ORDER_CNY} ¥)\n"
+            "2) Ո՞ր մեթոդով՝ Alipay / WeChat / Bank\n"
+            "3) Ինչով է վճարում՝ AMD / USD / RUB քարտով / USDT\n"
+            "4) QR կամ բանկային տվյալներ\n"
+            "5) Երբ է ուզում անել փոխանցումը\n\n"
+            "Հետո՝ հաշվարկ → հաստատում → վճարում → փոխանցում → status update"
         ),
     },
     "verification": {
-        "title": "🔒 Delays delays delays delays delays delays",
+        "title": "🔒 Անվտանգություն",
         "text": (
-            "👨‍💼 Օdelays delays delays delays workflow\n\n"
-            "Delays delays delays delays delays delays delays:\n"
-            "1) Delays delays ¥ delays delays delays (delays. 5000 ¥)\n"
-            "2) Delays delays delays delays delays Alipay/WeChat/Bank\n"
-            "3) Delays delays delays delays delays delays AMD/USD/RUB delays delays delays delays USDT\n"
-            "4) QR delays delays delays delays delays delays delays delays\n"
-            "5) Delays delays delays delays delays delays delays delays delays delays delays\n\n"
-            "Delays delays delays delays delays delays → delays delays delays delays → delays delays delays → delays delays delays delays → status update"
+            "<b>Անվտանգության կանոններ</b>\n\n"
+            "✅ QR/բանկ տվյալները պահիր միայն այս չաթում / բոթի request-ում\n"
+            "✅ Չփոխանցել երրորդ կողմի\n"
+            "✅ Կասկածելի կամ անսովոր մեծ գործարքների դեպքում՝ escalate ղեկավարին\n"
+            "✅ Եթե հաճախորդը շտապեցնում է/չի տրամադրում տվյալները՝ կանգնեցրու գործընթացը"
         ),
     },
     "templates": {
-        "title": "💬 Օdelays delays delays delays delays delays delays delays",
+        "title": "💬 Օպերատորի շաբլոններ",
         "text": (
-            "🔒 Delays delays delays delays delays delays\n\n"
-            "✅ QR/delays delays delays delays delays delays delays delays delays delays delays delays/delays delays delays request-delays delays\n"
-            "✅ Delays delays delays delays delays delays delays delays delays delays delays delays\n"
-            "✅ Delays delays delays delays/delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays"
+            "<b>Շաբլոններ</b>\n\n"
+            "<b>1) Սկիզբ</b>\n"
+            f"Ողջույն 👋 Խնդրում եմ գրեք՝ քանի ¥ եք ուզում ուղարկել (մին․ {MIN_ORDER_CNY} ¥) "
+            "և մեթոդը՝ Alipay/WeChat/Bank։\n\n"
+            "<b>2) QR խնդրել</b>\n"
+            "Կուղարկե՞ք QR կոդը կամ բանկային տվյալները՝ հաշվարկ անելու համար։\n\n"
+            "<b>3) Վճարում</b>\n"
+            "Կարող եք վճարել AMD/USD, RUB (միայն քարտով) կամ USDT։ Ո՞րն է հարմար։\n\n"
+            "<b>4) Ժամկետ</b>\n"
+            "Սովորաբար 20–60 րոպեում պատրաստ է։"
         ),
     },
     "pricing_guide": {
-        "title": "💰 Delays delays delays delays delays delays delays delays delays delays",
+        "title": "💰 Ներքին գնագոյացման ուղեցույց",
         "text": (
-            "💬 Delays delays delays delays delays delays\n\n"
-            "1) Delays delays delays\n"
-            "Delays delays 👋 Delays delays delays delays delays delays delays delays ¥ delays delays delays delays delays delays (delays. 5000 ¥) delays delays delays delays delays delays Alipay/WeChat/Bank.\n\n"
-            "2) QR delays delays delays\n"
-            "Delays delays delays delays QR delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays.\n\n"
-            "3) Delays delays delays\n"
-            "Delays delays delays delays delays delays AMD/USD, RUB (delays delays delays delays) delays delays USDT. Delays delays delays delays delays delays?\n\n"
-            "4) Delays delays delays\n"
-            "Delays delays delays 20–60 delays delays delays delays delays delays delays."
+            "<b>Ներքին pricing guide</b>\n\n"
+            "Աղբյուրներ՝ HTX P2P (USDT/CNY) + CBA (AMD/USD/RUB)\n\n"
+            "<b>Զեղչերի կանոն</b>\n"
+            "• AMD/USD/RUB (քարտով): <$4000 → -1.5%, ≥$4000 → -1.0%\n"
+            "• USDT: <$4000 → -1.0%, ≥$4000 → -0.5%\n\n"
+            "⚠️ Միշտ հաստատիր գումարը, մեթոդը և վճարման արժույթը մինչև հաշվարկ ուղարկելը։"
         ),
     },
 }
@@ -184,7 +179,6 @@ OPERATOR_TEXTS = {
 # ============================================================================
 # KB COMMANDS
 # ============================================================================
-
 @router.message(Command("kb"))
 async def cmd_kb(m: types.Message):
     """Knowledge base menu (admin only)."""
@@ -193,15 +187,15 @@ async def cmd_kb(m: types.Message):
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="👤 Հdelays delays delays delays delays", callback_data="kb_menu_user")],
-            [InlineKeyboardButton(text="👨‍💼 Օdelays delays delays delays delays", callback_data="kb_menu_operator")],
+            [InlineKeyboardButton(text="👤 Հաճախորդի տեքստեր", callback_data="kb_menu_user")],
+            [InlineKeyboardButton(text="👨‍💼 Օպերատորի տեքստեր", callback_data="kb_menu_operator")],
         ]
     )
 
     await m.answer(
-        "📚 <b>Տdelays delays delays delays</b>\n\n"
-        "Delays delays delays delays delays:",
+        "📚 <b>Տեղեկատու (KB)</b>\n\nԸնտրեք բաժինը՝",
         reply_markup=keyboard,
+        parse_mode="HTML",
     )
 
 
@@ -214,12 +208,12 @@ async def cb_kb_user_menu(callback: types.CallbackQuery):
         [InlineKeyboardButton(text=v["title"], callback_data=f"kb_user_{k}")]
         for k, v in USER_TEXTS.items()
     ]
-    buttons.append([InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_back_main")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Հետ", callback_data="kb_back_main")])
 
     await callback.message.edit_text(
-        "👤 <b>Հdelays delays delays delays delays delays:</b>\n\n"
-        "Delays delays delays delays delays:",
+        "👤 <b>Հաճախորդի տեքստեր</b>\n\nԸնտրեք նյութը՝",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        parse_mode="HTML",
     )
 
 
@@ -232,12 +226,12 @@ async def cb_kb_operator_menu(callback: types.CallbackQuery):
         [InlineKeyboardButton(text=v["title"], callback_data=f"kb_operator_{k}")]
         for k, v in OPERATOR_TEXTS.items()
     ]
-    buttons.append([InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_back_main")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Հետ", callback_data="kb_back_main")])
 
     await callback.message.edit_text(
-        "👨‍💼 <b>Օdelays delays delays delays delays delays:</b>\n\n"
-        "Delays delays delays delays delays:",
+        "👨‍💼 <b>Օպերատորի տեքստեր</b>\n\nԸնտրեք նյութը՝",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        parse_mode="HTML",
     )
 
 
@@ -245,13 +239,14 @@ async def cb_kb_operator_menu(callback: types.CallbackQuery):
 async def cb_kb_back(callback: types.CallbackQuery):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="👤 Հdelays delays delays delays delays", callback_data="kb_menu_user")],
-            [InlineKeyboardButton(text="👨‍💼 Օdelays delays delays delays delays", callback_data="kb_menu_operator")],
+            [InlineKeyboardButton(text="👤 Հաճախորդի տեքստեր", callback_data="kb_menu_user")],
+            [InlineKeyboardButton(text="👨‍💼 Օպերատորի տեքստեր", callback_data="kb_menu_operator")],
         ]
     )
     await callback.message.edit_text(
-        "📚 <b>Տdelays delays delays delays</b>\n\nDelays delays delays delays delays:",
+        "📚 <b>Տեղեկատու (KB)</b>\n\nԸնտրեք բաժինը՝",
         reply_markup=keyboard,
+        parse_mode="HTML",
     )
 
 
@@ -260,20 +255,20 @@ async def cb_kb_user_item(callback: types.CallbackQuery):
     if not is_admin(callback.from_user):
         return await callback.answer("⛔️ Not authorized.", show_alert=True)
 
-    key = callback.data.replace("kb_user_", "")
+    key = callback.data.replace("kb_user_", "", 1)
     item = USER_TEXTS.get(key)
-
     if not item:
         return await callback.answer("Not found", show_alert=True)
 
     buttons = [
-        [InlineKeyboardButton(text="📋 Պdelays delays delays delays delays", callback_data=f"kb_copy_user_{key}")],
-        [InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_menu_user")],
+        [InlineKeyboardButton(text="📋 Copy text", callback_data=f"kb_copy_user_{key}")],
+        [InlineKeyboardButton(text="⬅️ Հետ", callback_data="kb_menu_user")],
     ]
 
     await callback.message.edit_text(
         f"{item['title']}\n\n{item['text']}",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        parse_mode="HTML",
     )
 
 
@@ -282,19 +277,19 @@ async def cb_kb_operator_item(callback: types.CallbackQuery):
     if not is_admin(callback.from_user):
         return await callback.answer("⛔️ Not authorized.", show_alert=True)
 
-    key = callback.data.replace("kb_operator_", "")
+    key = callback.data.replace("kb_operator_", "", 1)
     item = OPERATOR_TEXTS.get(key)
-
     if not item:
         return await callback.answer("Not found", show_alert=True)
 
     buttons = [
-        [InlineKeyboardButton(text="⬅️ Հdelays delays", callback_data="kb_menu_operator")],
+        [InlineKeyboardButton(text="⬅️ Հետ", callback_data="kb_menu_operator")],
     ]
 
     await callback.message.edit_text(
         f"{item['title']}\n\n{item['text']}",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        parse_mode="HTML",
     )
 
 
@@ -304,45 +299,34 @@ async def cb_kb_copy(callback: types.CallbackQuery):
     if not is_admin(callback.from_user):
         return await callback.answer("⛔️ Not authorized.", show_alert=True)
 
-    key = callback.data.replace("kb_copy_user_", "")
+    key = callback.data.replace("kb_copy_user_", "", 1)
     item = USER_TEXTS.get(key)
-
     if not item:
         return await callback.answer("Not found", show_alert=True)
 
-    await callback.answer("Պdelays delays delays delays ↓")
-    await callback.message.answer(item["text"])
+    await callback.answer("✅ Sent below")
+    await callback.message.answer(item["text"], parse_mode="HTML")
 
 
 # ============================================================================
-# Quick KB commands
+# Quick KB commands (admin only)
 # ============================================================================
-
 @router.message(Command("kb_intro"))
 async def cmd_kb_intro(m: types.Message):
-    """Quick access to intro text."""
     if not is_admin(m.from_user):
         return
-
-    item = USER_TEXTS["intro_short"]
-    await m.answer(item["text"])
+    await m.answer(USER_TEXTS["intro_short"]["text"], parse_mode="HTML")
 
 
 @router.message(Command("kb_how"))
 async def cmd_kb_how(m: types.Message):
-    """Quick access to how-to text."""
     if not is_admin(m.from_user):
         return
-
-    item = USER_TEXTS["how_to_buy"]
-    await m.answer(item["text"])
+    await m.answer(USER_TEXTS["how_to_buy"]["text"], parse_mode="HTML")
 
 
 @router.message(Command("kb_faq"))
 async def cmd_kb_faq(m: types.Message):
-    """Quick access to FAQ."""
     if not is_admin(m.from_user):
         return
-
-    item = USER_TEXTS["faq"]
-    await m.answer(item["text"])
+    await m.answer(USER_TEXTS["faq"]["text"], parse_mode="HTML")
