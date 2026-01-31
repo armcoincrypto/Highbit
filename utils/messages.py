@@ -28,7 +28,8 @@ def format_daily_rates(fiat: Dict[str, Decimal], usdt_cny: Decimal) -> str:
 def format_daily_rates_new(
     usdt_cny: Decimal,
     cba_rates: Dict[str, Decimal],
-    htx_meta: Optional[dict] = None
+    htx_meta: Optional[dict] = None,
+    discounts: Optional[Dict[str, Decimal]] = None
 ) -> str:
     """
     Format daily rates using new CBA + HTX P2P services.
@@ -38,6 +39,8 @@ def format_daily_rates_new(
         usdt_cny: USDT/CNY price from P2P (market rate)
         cba_rates: CBA official rates (AMD-based)
         htx_meta: Metadata from P2P (source, stale flag)
+        discounts: Dynamic discount values from settings service
+                   Keys: usd_low, usd_high, amd_low, amd_high, usdt_low, usdt_high
 
     Returns:
         Formatted rates message with beautiful layout
@@ -50,21 +53,44 @@ def format_daily_rates_new(
     # Get CBA rate: how many AMD per 1 USD
     usd_amd = cba_rates.get("USD", Decimal("380"))
 
-    # FIAT multipliers (USD/AMD): -1.0% standard, -0.7% VIP
-    fiat_low = Decimal("1") + DISCOUNT_FIAT_LOW    # 0.99
-    fiat_high = Decimal("1") + DISCOUNT_FIAT_HIGH  # 0.993
+    # Use dynamic discounts if provided, otherwise fallback to config
+    if discounts:
+        usd_low_disc = discounts.get("usd_low", DISCOUNT_FIAT_LOW)
+        usd_high_disc = discounts.get("usd_high", DISCOUNT_FIAT_HIGH)
+        amd_low_disc = discounts.get("amd_low", DISCOUNT_FIAT_LOW)
+        amd_high_disc = discounts.get("amd_high", DISCOUNT_FIAT_HIGH)
+        usdt_low_disc = discounts.get("usdt_low", DISCOUNT_USDT_LOW)
+        usdt_high_disc = discounts.get("usdt_high", DISCOUNT_USDT_HIGH)
+    else:
+        usd_low_disc = DISCOUNT_FIAT_LOW
+        usd_high_disc = DISCOUNT_FIAT_HIGH
+        amd_low_disc = DISCOUNT_FIAT_LOW
+        amd_high_disc = DISCOUNT_FIAT_HIGH
+        usdt_low_disc = DISCOUNT_USDT_LOW
+        usdt_high_disc = DISCOUNT_USDT_HIGH
 
-    # USDT multipliers: -1.3% standard, -0.9% VIP
-    usdt_low = Decimal("1") + DISCOUNT_USDT_LOW    # 0.987
-    usdt_high = Decimal("1") + DISCOUNT_USDT_HIGH  # 0.991
+    # USD multipliers
+    usd_low = Decimal("1") + usd_low_disc
+    usd_high = Decimal("1") + usd_high_disc
 
-    # USD/CNY rates (using FIAT discount)
-    usd_cny_standard = (usdt_cny * fiat_low).quantize(Decimal("0.01"), ROUND_HALF_UP)
-    usd_cny_vip = (usdt_cny * fiat_high).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    # AMD multipliers (can be different from USD)
+    amd_low = Decimal("1") + amd_low_disc
+    amd_high = Decimal("1") + amd_high_disc
 
-    # AMD/CNY rates = USD_AMD / USD_CNY (using FIAT discount)
-    cny_amd_standard = (usd_amd / usd_cny_standard).quantize(Decimal("0.01"), ROUND_HALF_UP)
-    cny_amd_vip = (usd_amd / usd_cny_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    # USDT multipliers
+    usdt_low = Decimal("1") + usdt_low_disc
+    usdt_high = Decimal("1") + usdt_high_disc
+
+    # USD/CNY rates (using USD discount)
+    usd_cny_standard = (usdt_cny * usd_low).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    usd_cny_vip = (usdt_cny * usd_high).quantize(Decimal("0.01"), ROUND_HALF_UP)
+
+    # AMD/CNY rates = USD_AMD / USD_CNY (using AMD discount)
+    # Calculate intermediate USD/CNY with AMD discounts for the ratio
+    usd_cny_for_amd_std = usdt_cny * amd_low
+    usd_cny_for_amd_vip = usdt_cny * amd_high
+    cny_amd_standard = (usd_amd / usd_cny_for_amd_std).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    cny_amd_vip = (usd_amd / usd_cny_for_amd_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     # USDT/CNY rates (using USDT discount)
     usdt_cny_standard = (usdt_cny * usdt_low).quantize(Decimal("0.01"), ROUND_HALF_UP)

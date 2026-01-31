@@ -5,6 +5,7 @@ from aiogram.filters import Command
 
 from services.htx_p2p import get_htx_p2p_client
 from services.cba_rates import get_cba_client
+from services.settings import get_settings_service
 from utils.messages import format_daily_rates_new, MSG_RATES_UNAVAILABLE
 
 log = logging.getLogger(__name__)
@@ -25,8 +26,12 @@ async def rates_handler(m: types.Message):
         usdt_cny, htx_meta = await htx.get_usdt_cny_price()
         cba_rates, cba_meta = await cba.get_rates()
 
+        # Get dynamic discounts
+        settings = await get_settings_service()
+        discounts = await settings.get_all_discounts()
+
         # Format message
-        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta)
+        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta, discounts)
 
         # Add stale warning if data is old
         if htx_meta.get("stale") or cba_meta.get("stale"):

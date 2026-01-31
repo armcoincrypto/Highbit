@@ -35,6 +35,7 @@ from middlewares.antiflood import AntiFloodMiddleware
 from services.rates import get_rate_client
 from services.htx_p2p import get_htx_p2p_client
 from services.cba_rates import get_cba_client
+from services.settings import get_settings_service
 from utils.messages import format_daily_rates_new
 from models.database import get_database
 
@@ -187,11 +188,13 @@ async def scheduler_task(bot: Bot):
         # Use new services
         htx = await get_htx_p2p_client()
         cba = await get_cba_client()
+        settings = await get_settings_service()
 
         usdt_cny, htx_meta = await htx.get_usdt_cny_price()
         cba_rates, cba_meta = await cba.get_rates()
+        discounts = await settings.get_all_discounts()
 
-        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta)
+        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta, discounts)
 
         await bot.send_message(chat_id=CHANNEL_ID, text=text)
         log.info("scheduler: posted to channel %s", CHANNEL_ID)

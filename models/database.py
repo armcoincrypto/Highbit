@@ -192,6 +192,16 @@ class Database:
             cur.execute("CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status)")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_request_files_request_id ON request_files(request_id)")
 
+            # Settings table for dynamic configuration (discounts, etc.)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TEXT DEFAULT (datetime('now')),
+                    updated_by INTEGER
+                )
+            """)
+
             log.info("Database initialized at %s", self.db_path)
 
     # =========================================================================
@@ -423,6 +433,42 @@ class Database:
                 "active": active,
                 "total_cny_volume": total_cny,
             }
+
+    # =========================================================================
+    # Settings (dynamic configuration)
+    # =========================================================================
+
+    def get_setting(self, key: str) -> Optional[str]:
+        """Get a setting value by key."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT value FROM settings WHERE key = ?", (key,))
+            row = cur.fetchone()
+            return row[0] if row else None
+
+    def set_setting(self, key: str, value: str, updated_by: Optional[int] = None) -> None:
+        """Set a setting value."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO settings (key, value, updated_by, updated_at)
+                VALUES (?, ?, ?, datetime('now'))
+                ON CONFLICT(key) DO UPDATE SET
+                    value = excluded.value,
+                    updated_by = excluded.updated_by,
+                    updated_at = datetime('now')
+                """,
+                (key, value, updated_by)
+            )
+            log.info("Setting updated: %s = %s (by user %s)", key, value, updated_by)
+
+    def get_all_settings(self) -> dict:
+        """Get all settings as a dictionary."""
+        with self._get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT key, value FROM settings")
+            return {row[0]: row[1] for row in cur.fetchall()}
 
 
 async def get_database() -> Database:

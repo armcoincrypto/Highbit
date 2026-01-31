@@ -1,14 +1,19 @@
 import logging
 import os
+from decimal import Decimal
 from datetime import datetime, time, timedelta
 
-from aiogram import Router, types
+from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from pytz import timezone
 
 from services.htx_p2p import get_htx_p2p_client
 from services.cba_rates import get_cba_client
+from services.settings import get_settings_service
 from utils.messages import format_daily_rates_new
 from config import TIMEZONE, CHANNEL_ID
 
@@ -62,11 +67,13 @@ async def post_now(m: types.Message):
         # Use new services
         htx = await get_htx_p2p_client()
         cba = await get_cba_client()
+        settings = await get_settings_service()
 
         usdt_cny, htx_meta = await htx.get_usdt_cny_price()
         cba_rates, cba_meta = await cba.get_rates()
+        discounts = await settings.get_all_discounts()
 
-        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta)
+        text = format_daily_rates_new(usdt_cny, cba_rates, htx_meta, discounts)
 
         if CHANNEL_ID:
             await m.bot.send_message(chat_id=CHANNEL_ID, text=text)
@@ -232,3 +239,257 @@ async def channel_status(m: types.Message):
         )
 
     await m.answer(status)
+
+
+# =============================================================================
+# Discount Management
+# =============================================================================
+
+class DiscountStates(StatesGroup):
+    """FSM states for discount editing."""
+    waiting_for_value = State()
+
+
+# Labels for display
+DISCOUNT_LABELS = {
+    "usd_low": ("🇺🇸 USD", "< $4,000"),
+    "usd_high": ("🇺🇸 USD", "≥ $4,000"),
+    "amd_low": ("🇦🇲 AMD", "< 1.5M"),
+    "amd_high": ("🇦🇲 AMD", "≥ 1.5M"),
+    "usdt_low": ("📲 USDT", "< $4,000"),
+    "usdt_high": ("📲 USDT", "≥ $4,000"),
+}
+
+
+def _format_discount_pct(value: Decimal) -> str:
+    """Format discount as percentage string."""
+    pct = value * 100
+    return f"{pct:+.1f}%"
+
+
+async def _build_discounts_keyboard() -> InlineKeyboardMarkup:
+    """Build inline keyboard for discount selection."""
+    svc = await get_settings_service()
+    discounts = await svc.get_all_discounts()
+
+    buttons = []
+    for key, (currency, threshold) in DISCOUNT_LABELS.items():
+        value = discounts.get(key, Decimal("0"))
+        pct = _format_discount_pct(value)
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{currency} {threshold}: {pct}",
+                callback_data=f"disc_edit:{key}"
+            )
+        ])
+
+    # Add refresh button
+    buttons.append([
+        InlineKeyboardButton(text="🔄 Refresh", callback_data="disc_refresh")
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+async def _build_discounts_message() -> str:
+    """Build discounts display message."""
+    svc = await get_settings_service()
+    discounts = await svc.get_all_discounts()
+
+    lines = ["⚙️ <b>Discount Settings</b>\n"]
+
+    current_currency = None
+    for key, (currency, threshold) in DISCOUNT_LABELS.items():
+        value = discounts.get(key, Decimal("0"))
+        pct = _format_discount_pct(value)
+
+        if currency != current_currency:
+            if current_currency:
+                lines.append("")
+            lines.append(f"<b>{currency}</b>")
+            current_currency = currency
+
+        lines.append(f"  {threshold}: <code>{pct}</code>")
+
+    lines.append("\n<i>Tap a button to edit</i>")
+
+    return "\n".join(lines)
+
+
+@router.message(Command("discounts"))
+async def show_discounts(m: types.Message):
+    """Show current discount settings with edit buttons."""
+    if not _is_admin(m.from_user):
+        return await m.answer("⛔️ Not authorized.")
+
+    text = await _build_discounts_message()
+    keyboard = await _build_discounts_keyboard()
+
+    await m.answer(text, reply_markup=keyboard)
+
+
+@router.callback_query(F.data == "disc_refresh")
+async def refresh_discounts(callback: CallbackQuery):
+    """Refresh discounts display."""
+    if not _is_admin(callback.from_user):
+        return await callback.answer("⛔️ Not authorized.", show_alert=True)
+
+    text = await _build_discounts_message()
+    keyboard = await _build_discounts_keyboard()
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
+    await callback.answer("Refreshed")
+
+
+@router.callback_query(F.data.startswith("disc_edit:"))
+async def start_edit_discount(callback: CallbackQuery, state: FSMContext):
+    """Start editing a discount value."""
+    if not _is_admin(callback.from_user):
+        return await callback.answer("⛔️ Not authorized.", show_alert=True)
+
+    key = callback.data.split(":")[1]
+    if key not in DISCOUNT_LABELS:
+        return await callback.answer("Invalid discount key", show_alert=True)
+
+    currency, threshold = DISCOUNT_LABELS[key]
+    svc = await get_settings_service()
+    current = await svc.get_discount(key)
+    current_pct = _format_discount_pct(current)
+
+    # Store key in FSM
+    await state.set_state(DiscountStates.waiting_for_value)
+    await state.update_data(discount_key=key, message_id=callback.message.message_id)
+
+    # Show quick preset buttons
+    presets = ["-0.5", "-0.7", "-0.9", "-1.0", "-1.3", "-1.5", "-2.0"]
+    preset_buttons = []
+    row = []
+    for p in presets:
+        row.append(InlineKeyboardButton(text=f"{p}%", callback_data=f"disc_set:{key}:{p}"))
+        if len(row) == 4:
+            preset_buttons.append(row)
+            row = []
+    if row:
+        preset_buttons.append(row)
+
+    preset_buttons.append([
+        InlineKeyboardButton(text="❌ Cancel", callback_data="disc_cancel")
+    ])
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=preset_buttons)
+
+    await callback.message.edit_text(
+        f"✏️ <b>Edit {currency} {threshold}</b>\n\n"
+        f"Current: <code>{current_pct}</code>\n\n"
+        f"Choose a preset or type a value:\n"
+        f"<i>Example: -1.5 for -1.5%</i>",
+        reply_markup=keyboard
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("disc_set:"))
+async def set_discount_preset(callback: CallbackQuery, state: FSMContext):
+    """Set discount from preset button."""
+    if not _is_admin(callback.from_user):
+        return await callback.answer("⛔️ Not authorized.", show_alert=True)
+
+    parts = callback.data.split(":")
+    key = parts[1]
+    pct_str = parts[2]
+
+    try:
+        # Convert percentage to decimal (e.g., -1.0 -> -0.01)
+        pct = Decimal(pct_str)
+        value = pct / Decimal("100")
+
+        svc = await get_settings_service()
+        success = await svc.set_discount(key, value, callback.from_user.id)
+
+        if success:
+            await state.clear()
+
+            currency, threshold = DISCOUNT_LABELS[key]
+            await callback.answer(f"✅ {currency} {threshold} set to {pct_str}%")
+
+            # Show updated discounts
+            text = await _build_discounts_message()
+            keyboard = await _build_discounts_keyboard()
+            await callback.message.edit_text(text, reply_markup=keyboard)
+        else:
+            await callback.answer("Failed to save", show_alert=True)
+
+    except Exception as e:
+        log.exception("Failed to set discount: %s", e)
+        await callback.answer(f"Error: {e}", show_alert=True)
+
+
+@router.callback_query(F.data == "disc_cancel")
+async def cancel_discount_edit(callback: CallbackQuery, state: FSMContext):
+    """Cancel discount editing."""
+    await state.clear()
+
+    text = await _build_discounts_message()
+    keyboard = await _build_discounts_keyboard()
+
+    await callback.message.edit_text(text, reply_markup=keyboard)
+    await callback.answer("Cancelled")
+
+
+@router.message(DiscountStates.waiting_for_value)
+async def receive_discount_value(m: types.Message, state: FSMContext):
+    """Receive custom discount value from user."""
+    if not _is_admin(m.from_user):
+        await state.clear()
+        return
+
+    data = await state.get_data()
+    key = data.get("discount_key")
+
+    if not key:
+        await state.clear()
+        return await m.answer("Session expired. Use /discounts again.")
+
+    try:
+        # Parse value (accept both -1.0 and -0.01 formats)
+        text = m.text.strip().replace("%", "")
+        pct = Decimal(text)
+
+        # If value looks like a percentage (> 1 or < -1), convert to decimal
+        if pct > Decimal("1") or pct < Decimal("-1"):
+            value = pct / Decimal("100")
+        else:
+            value = pct
+
+        # Validate range (-10% to +10%)
+        if value < Decimal("-0.1") or value > Decimal("0.1"):
+            return await m.answer(
+                "⚠️ Value out of range.\n"
+                "Enter between -10% and +10%\n"
+                "Example: -1.5 for -1.5%"
+            )
+
+        svc = await get_settings_service()
+        success = await svc.set_discount(key, value, m.from_user.id)
+
+        if success:
+            await state.clear()
+            currency, threshold = DISCOUNT_LABELS[key]
+            pct_display = _format_discount_pct(value)
+
+            await m.answer(f"✅ {currency} {threshold} set to {pct_display}")
+
+            # Send updated discounts
+            text = await _build_discounts_message()
+            keyboard = await _build_discounts_keyboard()
+            await m.answer(text, reply_markup=keyboard)
+        else:
+            await m.answer("❌ Failed to save. Use /discounts again.")
+
+    except Exception as e:
+        log.warning("Invalid discount input: %s", e)
+        await m.answer(
+            "⚠️ Invalid value.\n"
+            "Enter a number like: -1.5 or -0.015\n"
+            "Example: -1.5 for -1.5%"
+        )
