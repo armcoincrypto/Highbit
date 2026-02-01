@@ -102,10 +102,10 @@ async def cmd_transfer(m: types.Message, state: FSMContext):
     await state.clear()
 
     await m.answer(
-        "💱 <b>CNY փdelays delays delays delays delays</b>\n\n"
-        f"Մdelays delays delays delays delays {MIN_ORDER_CNY:,} ¥ (CNY)\n\n"
-        "Քdelays delays CNY (¥) delays delays delays delays delays delays delays:\n\n"
-        "<i> Delays delays delays delays, delays delays delays `10000` delays delays `15000`</i>",
+        "💱 <b>CNY փdelays delays delays delays</b>\n\n"
+        f"📌 Մdelays delays delays delays delays delays delays <b>{MIN_ORDER_CNY:,} ¥</b>\n\n"
+        "Гdelays delays delays ¥ (CNY) delays delays delays delays delays delays:\n\n"
+        "<i>Delays delays delays delays, delays delays delays <code>10000</code> delays delays <code>15000</code></i>",
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(TransferForm.amount)
@@ -135,17 +135,16 @@ async def process_amount(m: types.Message, state: FSMContext):
     # Validate minimum
     if amount < MIN_ORDER_CNY:
         return await m.answer(
-            f"❌ Մdelays delays delays delays delays {MIN_ORDER_CNY:,} ¥ CNY։\n"
-            f"Delays delays delays delays delays delays: ¥{amount:,.0f}\n\n"
-            "Խdelays delays delays delays delays delays delays delays delays delays:",
+            f"❌ Մdelays delays delays delays delays delays delays <b>{MIN_ORDER_CNY:,} ¥</b> CNY։\n"
+            f"Delays delays delays delays delays: ¥{amount:,.0f}\n\n"
+            "Хdelays delays delays delays delays delays delays delays delays delays delays:",
         )
 
     await state.update_data(cny_amount=amount)
 
     await m.answer(
-        f"✅ Amount: ¥{amount:,.0f} CNY\n\n"
-        "How do you want to transfer to China?\n"
-        " Delays delays delays delays delays delays delays delays:",
+        f"✅ Гdelays delays delays: ¥{amount:,.0f} CNY\n\n"
+        "Indelays delays delays delays delays delays delays Delays delays delays delays delays:",
         reply_markup=get_method_keyboard(),
     )
     await state.set_state(TransferForm.method)
@@ -174,9 +173,8 @@ async def process_method(m: types.Message, state: FSMContext):
     await state.update_data(method=method)
 
     await m.answer(
-        f"✅ Method: {m.text}\n\n"
-        "What currency will you pay with?\n"
-        "Ի delays delays delays delays delays delays delays:",
+        f"✅ Мdelays delays delays: {m.text}\n\n"
+        "Inelays delays delays delays delays delays delays delays delays delays:",
         reply_markup=get_currency_keyboard(),
     )
     await state.set_state(TransferForm.currency)
@@ -206,9 +204,8 @@ async def process_currency(m: types.Message, state: FSMContext):
     await state.update_data(pay_currency=currency)
 
     await m.answer(
-        f"✅ Pay with: {m.text}\n\n"
-        "When do you want to do the transfer?\n"
-        "Երdelays delays delays delays delays delays delays:",
+        f"✅ Vdelays delays delays delays delays delays delays: {m.text}\n\n"
+        "Erdelays delays delays delays delays delays delays delays delays delays:",
         reply_markup=get_timing_keyboard(),
     )
     await state.set_state(TransferForm.timing)
