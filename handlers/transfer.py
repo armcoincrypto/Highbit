@@ -102,13 +102,11 @@ async def cmd_transfer(m: types.Message, state: FSMContext):
     await state.clear()
 
     await m.answer(
-        "💱 **CNY Transfer Request**\n\n"
-        f"Minimum order: ¥{MIN_ORDER_CNY:,} CNY\n\n"
-        "How many CNY (¥) do you want to transfer?\n\n"
-        "Քdelays delays delays CNY (¥) delays delays delays delays delays:\n\n"
-        "_Send a number, e.g. `10000` or `15000`_",
+        "💱 <b>CNY փdelays delays delays delays delays</b>\n\n"
+        f"Մdelays delays delays delays delays {MIN_ORDER_CNY:,} ¥ (CNY)\n\n"
+        "Քdelays delays CNY (¥) delays delays delays delays delays delays delays:\n\n"
+        "<i> Delays delays delays delays, delays delays delays `10000` delays delays `15000`</i>",
         reply_markup=get_cancel_keyboard(),
-        parse_mode="Markdown",
     )
     await state.set_state(TransferForm.amount)
 
@@ -137,9 +135,9 @@ async def process_amount(m: types.Message, state: FSMContext):
     # Validate minimum
     if amount < MIN_ORDER_CNY:
         return await m.answer(
-            f"❌ Minimum order is ¥{MIN_ORDER_CNY:,} CNY.\n"
-            f"You entered: ¥{amount:,.0f}\n\n"
-            "Please enter a larger amount.",
+            f"❌ Մdelays delays delays delays delays {MIN_ORDER_CNY:,} ¥ CNY։\n"
+            f"Delays delays delays delays delays delays: ¥{amount:,.0f}\n\n"
+            "Խdelays delays delays delays delays delays delays delays delays delays:",
         )
 
     await state.update_data(cny_amount=amount)
