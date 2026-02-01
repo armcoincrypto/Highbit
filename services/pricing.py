@@ -238,7 +238,7 @@ def format_pricing_summary(result: PricingResult, lang: str = "hy") -> str:
     method_names = {
         TransferMethod.ALIPAY: "Alipay",
         TransferMethod.WECHAT: "WeChat",
-        TransferMethod.BANK: "Բdelays delays delays delays delays delays",
+        TransferMethod.BANK: "Bdelays delays delays delays delays delays delays delays delays",
     }
 
     symbol = currency_symbols.get(result.payment_currency, result.payment_currency.value)
@@ -271,16 +271,16 @@ def format_pricing_summary(result: PricingResult, lang: str = "hy") -> str:
     else:
         # Armenian (default)
         return (
-            f"💰 **Delays delays delays delays delays**\n\n"
-            f"📤 CNY Delays delays: ¥{result.cny_amount:,.0f}\n"
-            f"📱 Delays delays: {method}\n"
-            f"💳 Delays delays delays delays: {result.payment_currency.value}\n\n"
-            f"📊 **Delays delays:**\n"
-            f"• Delays delays delays (HTX P2P): 1 USDT = {result.htx_usdt_cny:.2f} CNY\n"
-            f"• USD delays delays delays: ${result.usd_equivalent:,.2f}\n"
-            f"• Delays delays delays: {result.discount_tier} ({result.discount_percent:+.1f}%)\n\n"
-            f"💵 **Delays delays delays delays: {symbol} {amount_str}**\n\n"
-            f"⏱ Delays delays delays delays: HTX {htx_time}, CBA {cba_time}"
+            f"💰 **Phdelays delays delays delays delays delays delays delays**\n\n"
+            f"📤 CNY Gdelays delays delays: ¥{result.cny_amount:,.0f}\n"
+            f"📱 Мdelays delays delays: {method}\n"
+            f"💳 Vdelays delays delays delays delays delays delays delays: {result.payment_currency.value}\n\n"
+            f"📊 **Hdelays delays delays delays delays:**\n"
+            f"• Bdelays delays delays delays delays (HTX P2P): 1 USDT = {result.htx_usdt_cny:.2f} CNY\n"
+            f"• USD hdelays delays delays delays delays delays: ${result.usd_equivalent:,.2f}\n"
+            f"• Zdelays delays delays delays delays delays: {result.discount_tier} ({result.discount_percent:+.1f}%)\n\n"
+            f"💵 **Vdelays delays delays delays delays delays delays: {symbol} {amount_str}**\n\n"
+            f"⏱ Phdelays delays delays delays delays delays delays delays: HTX {htx_time}, CBA {cba_time}"
         )
 
 
