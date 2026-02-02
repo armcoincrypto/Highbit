@@ -1,7 +1,44 @@
 import asyncio
 import logging
 import signal
+import sys
+import os
 from pathlib import Path
+
+# =============================================================================
+# DEBUG BLOCK - Diagnose import issues
+# Remove after fixing the issue
+# =============================================================================
+print("=" * 60)
+print("DEBUG: Bot startup diagnostics")
+print("=" * 60)
+print(f"sys.executable: {sys.executable}")
+print(f"sys.version: {sys.version}")
+print(f"os.getcwd(): {os.getcwd()}")
+print(f"__file__: {__file__}")
+print(f"sys.path (first 10):")
+for i, p in enumerate(sys.path[:10]):
+    print(f"  [{i}] {p}")
+
+# Check if handlers package is importable and where it comes from
+try:
+    import handlers
+    print(f"handlers.__file__: {handlers.__file__}")
+except Exception as e:
+    print(f"handlers import ERROR: {e}")
+
+# Check each handler module
+for mod_name in ["rates", "convert", "inline", "start_help", "fallback_numeric", "admin", "transfer", "admin_transfer", "kb"]:
+    try:
+        mod = __import__(f"handlers.{mod_name}", fromlist=["router"])
+        has_router = hasattr(mod, "router")
+        router_type = type(getattr(mod, "router", None)).__name__ if has_router else "N/A"
+        print(f"  handlers.{mod_name}: router={has_router} type={router_type}")
+    except Exception as e:
+        print(f"  handlers.{mod_name}: IMPORT ERROR - {e}")
+
+print("=" * 60)
+# =============================================================================
 
 from dotenv import load_dotenv
 
