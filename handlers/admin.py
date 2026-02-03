@@ -591,8 +591,13 @@ async def receive_discount_value(m: types.Message, state: FSMContext):
         return await m.answer("Session expired. Use /discounts again.")
 
     try:
-        # Parse value (accept both -1.0 and -0.01 formats)
-        text = m.text.strip().replace("%", "")
+        # Parse value (accept formats: -1.7, -1.7%, 1.7%, -0.017)
+        text = m.text.strip()
+        # Remove % and common variants
+        text = text.replace("%", "").replace("％", "").replace("٪", "")
+        # Remove spaces
+        text = text.replace(" ", "")
+        # Handle if user forgot minus sign for discount
         pct = Decimal(text)
 
         # If value looks like a percentage (> 1 or < -1), convert to decimal
@@ -600,6 +605,12 @@ async def receive_discount_value(m: types.Message, state: FSMContext):
             value = pct / Decimal("100")
         else:
             value = pct
+
+        # For discounts, value should typically be negative
+        # If user entered positive, assume they meant negative discount
+        if value > 0:
+            # Ask for confirmation or just negate
+            value = -value
 
         # Validate range (-10% to +10%)
         if value < Decimal("-0.1") or value > Decimal("0.1"):
