@@ -35,7 +35,7 @@ async def cmd_requests(m: types.Message):
     if not requests:
         return await m.answer("No active requests.")
 
-    text = "📋 **Active Requests:**\n\n"
+    text = "📋 <b>Active Requests:</b>\n\n"
     for req in requests:
         status_emoji = {
             RequestStatus.NEW: "🆕",
@@ -51,7 +51,7 @@ async def cmd_requests(m: types.Message):
             f"   {user_link} | {req.status.value}\n\n"
         )
 
-    await m.answer(text, parse_mode="Markdown")
+    await m.answer(text)
 
 
 @router.message(Command("stats"))
@@ -64,12 +64,11 @@ async def cmd_stats(m: types.Message):
     stats = db.get_stats()
 
     await m.answer(
-        f"📊 **Transfer Statistics**\n\n"
+        f"📊 <b>Transfer Statistics</b>\n\n"
         f"Total requests: {stats['total_requests']}\n"
         f"Completed: {stats['completed']}\n"
         f"Active: {stats['active']}\n"
         f"Total CNY volume: ¥{stats['total_cny_volume']:,.0f}",
-        parse_mode="Markdown",
     )
 
 
@@ -100,7 +99,7 @@ async def cmd_request_detail(m: types.Message):
     user_link = f"@{req.username}" if req.username else f"ID:{req.user_id}"
 
     text = (
-        f"📋 **Request #{req.id}**\n\n"
+        f"📋 <b>Request #{req.id}</b>\n\n"
         f"👤 User: {user_link}\n"
         f"💰 CNY: ¥{req.cny_amount:,.0f}\n"
         f"💵 USD equiv: ${req.usd_equiv:,.2f}\n"
@@ -118,13 +117,13 @@ async def cmd_request_detail(m: types.Message):
         text += f"\n📝 Notes: {req.notes}\n"
 
     if history:
-        text += "\n📜 **History:**\n"
+        text += "\n📜 <b>History:</b>\n"
         for h in history[-5:]:
             text += f"  • {h.old_status} → {h.new_status} ({h.changed_at.strftime('%H:%M')})\n"
 
     keyboard = get_status_keyboard(request_id, req.status)
 
-    await m.answer(text, reply_markup=keyboard, parse_mode="Markdown")
+    await m.answer(text, reply_markup=keyboard)
 
     # Send attached files
     for f in files:
@@ -286,7 +285,6 @@ async def update_status_message(callback: types.CallbackQuery, request_id: int, 
         await callback.message.edit_text(
             "\n".join(lines),
             reply_markup=keyboard,
-            parse_mode="Markdown",
         )
     except Exception as e:
         log.warning("Failed to update message: %s", e)
