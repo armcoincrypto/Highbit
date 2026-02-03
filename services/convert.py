@@ -45,3 +45,14 @@ def convert_usd_to_cny(amount_usd: Decimal, fiat: dict):
     usd_to_cny = _usd_to_cny_rate_after_margin(fiat)
     cny = amount_usd * usd_to_cny
     return to_int_str(cny)
+
+
+def convert_amd_to_cny(amount_amd: Decimal, fiat: dict):
+    """Convert AMD to CNY.
+
+    fiat["AMD"] = how many AMD per 1 CNY
+    So CNY = AMD_amount / fiat["AMD"]
+    """
+    amd_per_cny = fiat["AMD"] * (Decimal(1) + MARGIN_AMD_RUB)
+    cny = amount_amd / amd_per_cny
+    return to_int_str(cny)

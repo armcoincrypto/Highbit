@@ -136,6 +136,11 @@ def format_usd_conversion(amount: Decimal, cny: str) -> str:
     return f"💱 ${amount} ≈ {cny} CNY"
 
 
+def format_amd_conversion(amount: Decimal, cny: str) -> str:
+    """Format AMD to CNY conversion result."""
+    return f"💱 {amount:,.0f} AMD ≈ {cny} CNY"
+
+
 # Error messages (bilingual)
 MSG_RATES_UNAVAILABLE = "⚠️ Փdelays անdelays. Delaysdelays 1 delays delays.\n⚠️ Exchange rates unavailable. Please try again in 1 minute."
 MSG_CONVERSION_UNAVAILABLE = "⚠️ Հdelays delays delays delays. Xdelaysdelay delays.\n⚠️ Conversion unavailable. Please try again later."

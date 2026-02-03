@@ -134,10 +134,12 @@ async def on_startup(bot: Bot):
     await bot.set_my_commands([
         BotCommand(command="start", description="Start / Help"),
         BotCommand(command="help", description="How to use"),
-        BotCommand(command="transfer", description="📤 Transfer to China (Buy CNY)"),
-        BotCommand(command="rates", description="Daily rates"),
-        BotCommand(command="convert", description="Convert amount"),
-        BotCommand(command="my_requests", description="My transfer requests"),
+        BotCommand(command="transfer", description="📤 Transfer to China"),
+        BotCommand(command="rates", description="📊 Our rates"),
+        BotCommand(command="convert", description="💱 Convert CNY/USD/AMD"),
+        BotCommand(command="guide", description="📖 Quick guide"),
+        BotCommand(command="faq", description="❓ FAQ"),
+        BotCommand(command="my_requests", description="📋 My requests"),
     ])
     log.info("Bot commands set")
 

@@ -309,7 +309,45 @@ async def cb_kb_copy(callback: types.CallbackQuery):
 
 
 # ============================================================================
-# Quick KB commands (admin only)
+# USER COMMANDS (available to everyone)
+# ============================================================================
+@router.message(Command("guide"))
+async def cmd_guide(m: types.Message):
+    """Quick guide for users."""
+    log.info("/guide by %s", m.from_user.id if m.from_user else "?")
+    await m.answer(USER_TEXTS["intro_short"]["text"], parse_mode="HTML")
+
+
+@router.message(Command("howto"))
+async def cmd_howto(m: types.Message):
+    """How to send CNY step by step."""
+    log.info("/howto by %s", m.from_user.id if m.from_user else "?")
+    await m.answer(USER_TEXTS["how_to_buy"]["text"], parse_mode="HTML")
+
+
+@router.message(Command("faq"))
+async def cmd_faq(m: types.Message):
+    """Frequently asked questions."""
+    log.info("/faq by %s", m.from_user.id if m.from_user else "?")
+    await m.answer(USER_TEXTS["faq"]["text"], parse_mode="HTML")
+
+
+@router.message(Command("contact"))
+async def cmd_contact(m: types.Message):
+    """Contact information."""
+    log.info("/contact by %s", m.from_user.id if m.from_user else "?")
+    await m.answer(USER_TEXTS["contact"]["text"], parse_mode="HTML")
+
+
+@router.message(Command("pricing"))
+async def cmd_pricing(m: types.Message):
+    """Pricing and discount info."""
+    log.info("/pricing by %s", m.from_user.id if m.from_user else "?")
+    await m.answer(USER_TEXTS["pricing"]["text"], parse_mode="HTML")
+
+
+# ============================================================================
+# Quick KB commands (admin only - shortcuts)
 # ============================================================================
 @router.message(Command("kb_intro"))
 async def cmd_kb_intro(m: types.Message):

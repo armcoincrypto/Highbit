@@ -41,30 +41,26 @@ ADMIN_HELP = """
   • <code>/setrate 0</code> — Clear (use API)
 
 /discounts — Manage discount percentages
-  • Tap buttons to edit each tier
-  • Discounts apply to base rate
-
 /clear_cache — Clear all rate caches
 
 <b>📢 Channel Management:</b>
 /post_now — Post rates to channel now
-/post_target_test — Test channel access
-/channel_status — Check channel config
 /when — Show next scheduled post time
+/channel_status — Check channel config
 
 <b>📋 Request Management:</b>
 /requests — View pending requests
 /request_ID — View specific request
 
-<b>⚙️ How rates work:</b>
-1. Set base rate: <code>/setrate 7.25</code>
-2. Bot applies discounts:
-   • USD/AMD: -1.0% (&lt;$4k) / -0.7% (≥$4k)
-   • USDT: -1.3% (&lt;$4k) / -0.9% (≥$4k)
-3. Final rate = base × (1 + discount)
+<b>📚 Knowledge Base (KB):</b>
+/kb — Open KB menu (texts &amp; templates)
+/kb_intro — Quick: send intro guide
+/kb_how — Quick: send how-to guide
+/kb_faq — Quick: send FAQ
 
-<b>Example:</b>
-Base 7.25 × 0.99 (-1%) = 7.18 CNY/USD
+<b>⚙️ How rates work:</b>
+Base rate × (1 + discount) = final rate
+Example: 7.25 × 0.99 = 7.18 CNY/USD
 """
 
 
