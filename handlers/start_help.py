@@ -9,16 +9,32 @@ log = logging.getLogger(__name__)
 router = Router()
 
 HELLO = (
-    "👋 <b>Բdelays Highbit!</b>\n\n"
-    "📊 /rates — Մdelays delays / Our rates\n"
-    "💱 /convert — Գdelays delays / Convert amount\n"
-    "💵 /fiatrate — CBA delays / Official rates\n"
-    "📤 /transfer — CNY delays / Transfer to China\n"
-    "📋 /my_requests — Իdelays delays / My requests\n"
-    "ℹ️ /help — Օdelays / Help\n\n"
-    "💬 Օdelays / Support: @Highbitagent\n"
-    "📢 Delaysdelays / Channel: @Highbitchannel\n\n"
-    "<i>Գdelays CNY delays / Convert your amount to CNY:</i>"
+    "👋 <b>Բdelays Highbit!</b>\n"
+    "🇨🇳 Delays CNY / Transfer to China\n\n"
+
+    "━━━━━━━━━━━━━━━━━━━━\n"
+    "<b>📊 Delaysdelay / Rates</b>\n"
+    "/rates — Մdelays / Our rates\n"
+    "/fiatrate — CBA delays / Official rates\n"
+    "/pricing — Գdelays / Pricing info\n\n"
+
+    "<b>💱 Փdelays / Convert</b>\n"
+    "/convert — Գdelays / Convert amount\n"
+    "  <code>5000</code> · <code>500$</code> · <code>100000֏</code>\n\n"
+
+    "<b>📤 Փdelays / Transfer</b>\n"
+    "/transfer — CNY delays / Send to China\n"
+    "/my_requests — Իdelays / My requests\n\n"
+
+    "<b>📖 Delays / Guides</b>\n"
+    "/guide — Delays / Quick guide\n"
+    "/howto — Delaysdelays / Step by step\n"
+    "/faq — Delays / FAQ\n"
+    "/contact — Delaysdelays / Contact\n"
+    "━━━━━━━━━━━━━━━━━━━━\n\n"
+
+    "💬 @Highbitagent\n"
+    "📢 @Highbitchannel"
 )
 
 HELP = (
