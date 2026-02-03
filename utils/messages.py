@@ -136,7 +136,7 @@ def format_usd_conversion(amount: Decimal, cny: str) -> str:
     return f"💱 ${amount} ≈ {cny} CNY"
 
 
-# Error messages (Armenian)
-MSG_RATES_UNAVAILABLE = "⚠️ Phdelays delays delays delays delays delays delays delays delays delays delays delays delays. Phdelays delays delays 1 delays delays delays."
-MSG_CONVERSION_UNAVAILABLE = "⚠️ Hdelays delays delays delays delays delays delays delays delays delays. Xdelays delays delays delays delays delays delays delays delays."
-MSG_USDT_NOT_SUPPORTED = "❌ USDT delays delays delays delays delays delays delays delays.\nОdelays delays delays delays delays: 3000 (CNY) delays delays 3000$ / $3000 (USD)."
+# Error messages (bilingual)
+MSG_RATES_UNAVAILABLE = "⚠️ Փdelays անdelays. Delaysdelays 1 delays delays.\n⚠️ Exchange rates unavailable. Please try again in 1 minute."
+MSG_CONVERSION_UNAVAILABLE = "⚠️ Հdelays delays delays delays. Xdelaysdelay delays.\n⚠️ Conversion unavailable. Please try again later."
+MSG_USDT_NOT_SUPPORTED = "❌ USDT delays delays delays delays.\n❌ USDT conversion not supported.\nExample: 3000 (CNY) or 3000$ / $3000 (USD)."
