@@ -519,7 +519,7 @@ async def notify_admin_new_request(
 # User Commands
 # ============================================================================
 
-@router.message(Command("my_requests"))
+@router.message(Command("requests"))
 async def cmd_my_requests(m: types.Message):
     """Show user's recent requests."""
     db = await get_database()

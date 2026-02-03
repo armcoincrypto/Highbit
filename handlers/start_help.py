@@ -24,7 +24,7 @@ HELLO = (
 
     "<b>📤 Փdelays / Transfer</b>\n"
     "/transfer — CNY delays / Send to China\n"
-    "/my_requests — Իdelays / My requests\n\n"
+    "/requests — Իdelays / My requests\n\n"
 
     "<b>📖 Delays / Guides</b>\n"
     "/guide — Delays / Quick guide\n"
@@ -50,7 +50,7 @@ HELP = (
     "  • <code>100000֏</code> — AMD amount\n\n"
     "<b>📤 Փdelays / Transfer:</b>\n"
     "/transfer — Delays CNY / Transfer to China\n"
-    "/my_requests — Delays delays / My requests\n\n"
+    "/requests — Delays delays / My requests\n\n"
     "<b>📖 Delays / Guides:</b>\n"
     "/guide — Delaysdelays / Quick guide\n"
     "/howto — Delays delays / Step by step\n"

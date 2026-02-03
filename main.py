@@ -139,7 +139,7 @@ async def on_startup(bot: Bot):
         BotCommand(command="convert", description="💱 Convert CNY/USD/AMD"),
         BotCommand(command="guide", description="📖 Quick guide"),
         BotCommand(command="faq", description="❓ FAQ"),
-        BotCommand(command="my_requests", description="📋 My requests"),
+        BotCommand(command="requests", description="📋 My requests"),
     ])
     log.info("Bot commands set")
 
