@@ -498,8 +498,8 @@ async def start_edit_discount(callback: CallbackQuery, state: FSMContext):
     await state.set_state(DiscountStates.waiting_for_value)
     await state.update_data(discount_key=key, message_id=callback.message.message_id)
 
-    # Show quick preset buttons
-    presets = ["-0.5", "-0.7", "-0.9", "-1.0", "-1.3", "-1.5", "-2.0"]
+    # Show quick preset buttons - more options
+    presets = ["-0.5", "-0.7", "-0.9", "-1.0", "-1.2", "-1.3", "-1.5", "-1.7", "-2.0", "-2.5", "-3.0"]
     preset_buttons = []
     row = []
     for p in presets:
