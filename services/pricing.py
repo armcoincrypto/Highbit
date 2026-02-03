@@ -18,6 +18,10 @@ from config import (
 )
 from services.htx_p2p import get_htx_p2p_client
 from services.cba_rates import get_cba_client
+from services.settings import get_settings_service
+
+# CBA margin for USD/AMD rate (+0.3%) - same as in utils/messages.py
+CBA_AMD_MARGIN = Decimal("0.003")
 
 log = logging.getLogger(__name__)
 
@@ -132,17 +136,23 @@ async def calculate_pricing(
     # Fetch rates
     htx_client = await get_htx_p2p_client()
     cba_client = await get_cba_client()
+    settings = await get_settings_service()
 
     htx_price, htx_meta = await htx_client.get_usdt_cny_price()
     cba_rates, cba_meta = await cba_client.get_rates()
 
-    # Get required CBA rates
-    cba_usd_amd = cba_rates.get("USD")
+    # Get required CBA rates (with margin applied to USD/AMD)
+    cba_usd_amd_raw = cba_rates.get("USD")
     cba_cny_amd = cba_rates.get("CNY")
     cba_rub_amd = cba_rates.get("RUB")
 
-    if not cba_usd_amd or not cba_cny_amd:
+    if not cba_usd_amd_raw or not cba_cny_amd:
         raise PricingError("Required CBA rates (USD, CNY) not available")
+
+    # Apply +0.3% margin to USD/AMD rate (same as /rates display)
+    cba_usd_amd = (cba_usd_amd_raw * (Decimal("1") + CBA_AMD_MARGIN)).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
     # Calculate USD equivalent using CBA cross rate
     # CNY to USD = (CNY in AMD) / (USD in AMD)
@@ -153,10 +163,15 @@ async def calculate_pricing(
     is_high_tier = usd_equivalent >= DISCOUNT_THRESHOLD_USD
     is_usdt = payment_currency == PaymentCurrency.USDT
 
+    # Get dynamic discounts from settings (same as /rates)
+    discounts = await settings.get_all_discounts()
+
     if is_usdt:
-        discount = DISCOUNT_USDT_HIGH if is_high_tier else DISCOUNT_USDT_LOW
+        discount = discounts.get("usdt_high" if is_high_tier else "usdt_low",
+                                  DISCOUNT_USDT_HIGH if is_high_tier else DISCOUNT_USDT_LOW)
     else:
-        discount = DISCOUNT_FIAT_HIGH if is_high_tier else DISCOUNT_FIAT_LOW
+        discount = discounts.get("usd_high" if is_high_tier else "usd_low",
+                                  DISCOUNT_FIAT_HIGH if is_high_tier else DISCOUNT_FIAT_LOW)
 
     discount_tier = "high" if is_high_tier else "low"
 
