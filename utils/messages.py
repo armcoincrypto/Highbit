@@ -85,12 +85,10 @@ def format_daily_rates_new(
     usd_cny_standard = (usdt_cny * usd_low).quantize(Decimal("0.01"), ROUND_HALF_UP)
     usd_cny_vip = (usdt_cny * usd_high).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
-    # AMD/CNY rates = USD_AMD / USD_CNY (using AMD discount)
-    # Calculate intermediate USD/CNY with AMD discounts for the ratio
-    usd_cny_for_amd_std = usdt_cny * amd_low
-    usd_cny_for_amd_vip = usdt_cny * amd_high
-    cny_amd_standard = (usd_amd / usd_cny_for_amd_std).quantize(Decimal("0.01"), ROUND_HALF_UP)
-    cny_amd_vip = (usd_amd / usd_cny_for_amd_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    # AMD/CNY rates = USD_AMD / USD_CNY (using displayed USD/CNY rate)
+    # This ensures consistency: if 1 USD = 6.81 CNY, then AMD/CNY = 379/6.81
+    cny_amd_standard = (usd_amd / usd_cny_standard).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    cny_amd_vip = (usd_amd / usd_cny_vip).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     # USDT/CNY rates (using USDT discount)
     usdt_cny_standard = (usdt_cny * usdt_low).quantize(Decimal("0.01"), ROUND_HALF_UP)
