@@ -219,6 +219,92 @@ async def clear_cache(m: types.Message):
     await m.answer("✅ All rate caches cleared (legacy, HTX P2P, CBA).")
 
 
+# =============================================================================
+# Manual Rate Setting
+# =============================================================================
+
+@router.message(Command("setrate"))
+async def set_rate(m: types.Message):
+    """
+    Admin command to set manual USDT/CNY rate.
+    Usage: /setrate 7.25  (sets rate to 7.25 CNY per USDT)
+    Usage: /setrate 0     (clears manual rate, use API)
+    Usage: /setrate       (shows current rate)
+    """
+    if not _is_admin(m.from_user):
+        return await m.answer("⛔️ Not authorized.")
+
+    args = m.text.split(maxsplit=1)
+    svc = await get_settings_service()
+
+    # No argument - show current rate
+    if len(args) < 2:
+        manual_rate = await svc.get_manual_rate()
+        htx = await get_htx_p2p_client()
+
+        try:
+            api_rate, meta = await htx.get_usdt_cny_price()
+            api_source = meta.get("source", "unknown")
+        except Exception:
+            api_rate = None
+            api_source = "unavailable"
+
+        if manual_rate:
+            status = f"📊 <b>USDT/CNY Rate</b>\n\n"
+            status += f"✅ Manual rate: <b>{manual_rate}</b> CNY/USDT\n"
+            status += f"📡 API rate: {api_rate or 'N/A'} ({api_source})"
+        else:
+            status = f"📊 <b>USDT/CNY Rate</b>\n\n"
+            status += f"📡 Using API rate: <b>{api_rate or 'N/A'}</b> CNY/USDT\n"
+            status += f"Source: {api_source}\n\n"
+            status += "<i>No manual rate set</i>"
+
+        status += "\n\n<b>Usage:</b>\n"
+        status += "<code>/setrate 7.25</code> - Set rate to 7.25\n"
+        status += "<code>/setrate 0</code> - Clear manual rate"
+
+        return await m.answer(status)
+
+    # Parse rate value
+    try:
+        rate_str = args[1].strip()
+        rate = Decimal(rate_str)
+
+        if rate < 0:
+            return await m.answer("❌ Rate cannot be negative.")
+
+        if rate == 0:
+            # Clear manual rate
+            await svc.set_manual_rate(None, m.from_user.id)
+            await m.answer(
+                "✅ Manual rate cleared.\n\n"
+                "Bot will now use API rate (CoinGecko/P2P)."
+            )
+        elif rate < 5 or rate > 10:
+            # Sanity check for USDT/CNY (typically 6.5-8.0)
+            return await m.answer(
+                f"⚠️ Rate {rate} seems unusual for USDT/CNY.\n\n"
+                f"Expected range: 5.0 - 10.0\n"
+                f"If you're sure, please confirm."
+            )
+        else:
+            await svc.set_manual_rate(rate, m.from_user.id)
+            await m.answer(
+                f"✅ Manual rate set: <b>{rate}</b> CNY/USDT\n\n"
+                f"This rate will be used for all calculations.\n"
+                f"Use <code>/setrate 0</code> to clear."
+            )
+
+    except Exception as e:
+        log.warning("Invalid rate input: %s", e)
+        await m.answer(
+            "❌ Invalid rate format.\n\n"
+            "Usage:\n"
+            "<code>/setrate 7.25</code> - Set rate\n"
+            "<code>/setrate 0</code> - Clear rate"
+        )
+
+
 @router.message(Command("channel_status"))
 async def channel_status(m: types.Message):
     """Check current channel posting status."""

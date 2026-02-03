@@ -314,11 +314,26 @@ class HTXP2PClient:
         Returns (price, metadata).
 
         Priority:
+        0. Manual rate (if set by admin via /setrate)
         1. P2P.Army API (if API key configured)
         2. HTX Direct P2P API
         3. Binance P2P (final fallback)
         4. Last cached value (emergency)
         """
+        # Check for manual rate first
+        from services.settings import get_settings_service
+        try:
+            svc = await get_settings_service()
+            manual_rate = await svc.get_manual_rate()
+            if manual_rate:
+                return manual_rate, {
+                    "source": "manual",
+                    "timestamp": time.time(),
+                    "stale": False,
+                }
+        except Exception as e:
+            log.warning("Failed to check manual rate: %s", e)
+
         async with self._cache_lock:
             if self._is_fresh():
                 _, price, metadata = self._cache

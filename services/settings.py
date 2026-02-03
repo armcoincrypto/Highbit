@@ -37,6 +37,9 @@ DEFAULT_DISCOUNTS = {
     "usdt_high": DISCOUNT_USDT_HIGH,    # -0.9%
 }
 
+# Key for manual USDT/CNY rate
+MANUAL_RATE_KEY = "manual_usdt_cny_rate"
+
 
 class SettingsService:
     """
@@ -112,6 +115,37 @@ class SettingsService:
         """Clear the settings cache to force reload."""
         self._cache.clear()
         self._loaded = False
+
+    async def get_manual_rate(self) -> Optional[Decimal]:
+        """
+        Get the manually set USDT/CNY rate.
+        Returns None if not set (use API rate).
+        """
+        db = await get_database()
+        value = db.get_setting(MANUAL_RATE_KEY)
+        if value:
+            try:
+                rate = Decimal(value)
+                log.debug("Using manual USDT/CNY rate: %s", rate)
+                return rate
+            except Exception as e:
+                log.warning("Invalid manual rate value: %s", e)
+        return None
+
+    async def set_manual_rate(self, rate: Decimal, admin_id: int) -> bool:
+        """
+        Set the manual USDT/CNY rate.
+        Set to 0 or None to clear and use API rate.
+        """
+        db = await get_database()
+        if rate is None or rate <= 0:
+            # Clear the manual rate
+            db.set_setting(MANUAL_RATE_KEY, "", admin_id)
+            log.info("Manual USDT/CNY rate cleared by admin %d", admin_id)
+        else:
+            db.set_setting(MANUAL_RATE_KEY, str(rate), admin_id)
+            log.info("Manual USDT/CNY rate set to %s by admin %d", rate, admin_id)
+        return True
 
 
 async def get_settings_service() -> SettingsService:
