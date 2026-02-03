@@ -27,6 +27,56 @@ def _is_admin(user: types.User | None) -> bool:
     return bool(user and user.id in _ADMIN_IDS)
 
 
+# =============================================================================
+# Admin Help Command
+# =============================================================================
+
+ADMIN_HELP = """
+🔐 <b>Admin Commands</b>
+
+<b>📊 Rate Management:</b>
+/setrate — Set/view manual USDT/CNY rate
+  • <code>/setrate</code> — Show current rate
+  • <code>/setrate 7.25</code> — Set rate to 7.25
+  • <code>/setrate 0</code> — Clear (use API)
+
+/discounts — Manage discount percentages
+  • Tap buttons to edit each tier
+  • Discounts apply to base rate
+
+/clear_cache — Clear all rate caches
+
+<b>📢 Channel Management:</b>
+/post_now — Post rates to channel now
+/post_target_test — Test channel access
+/channel_status — Check channel config
+/when — Show next scheduled post time
+
+<b>📋 Request Management:</b>
+/requests — View pending requests
+/request_ID — View specific request
+
+<b>⚙️ How rates work:</b>
+1. Set base rate: <code>/setrate 7.25</code>
+2. Bot applies discounts:
+   • USD/AMD: -1.0% (&lt;$4k) / -0.7% (≥$4k)
+   • USDT: -1.3% (&lt;$4k) / -0.9% (≥$4k)
+3. Final rate = base × (1 + discount)
+
+<b>Example:</b>
+Base 7.25 × 0.99 (-1%) = 7.18 CNY/USD
+"""
+
+
+@router.message(Command("admin"))
+async def admin_help(m: types.Message):
+    """Show admin commands and instructions."""
+    if not _is_admin(m.from_user):
+        return await m.answer("⛔️ Not authorized.")
+
+    await m.answer(ADMIN_HELP)
+
+
 def _next_10_o_clock(tzname: str):
     tz = timezone(tzname)
     now = datetime.now(tz)
