@@ -50,8 +50,12 @@ def format_daily_rates_new(
         DISCOUNT_FIAT_LOW, DISCOUNT_FIAT_HIGH
     )
 
-    # Get CBA rate: how many AMD per 1 USD
-    usd_amd = cba_rates.get("USD", Decimal("380"))
+    # CBA margin for USD/AMD rate (+0.3%)
+    CBA_AMD_MARGIN = Decimal("0.003")
+
+    # Get CBA rate: how many AMD per 1 USD (with margin)
+    usd_amd_raw = cba_rates.get("USD", Decimal("380"))
+    usd_amd = (usd_amd_raw * (Decimal("1") + CBA_AMD_MARGIN)).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     # Use dynamic discounts if provided, otherwise fallback to config
     if discounts:
